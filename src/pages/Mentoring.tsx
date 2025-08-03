@@ -51,8 +51,8 @@ export default function Mentoring() {
   const [selectedProgram, setSelectedProgram] = useState<typeof mentoringPrograms[0] | null>(null);
 
   const filteredPrograms = mentoringPrograms.filter(program => 
-    (!selectedBranch || program.branch === selectedBranch) &&
-    (!selectedSection || program.section === selectedSection)
+    (!selectedBranch || selectedBranch === "all-branches" || program.branch === selectedBranch) &&
+    (!selectedSection || selectedSection === "all-sections" || program.section === selectedSection)
   );
 
   const calculateWorkingWeeks = (startDate: string, totalWeeks: number) => {
@@ -81,7 +81,7 @@ export default function Mentoring() {
                     <SelectValue placeholder="Select Branch" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Branches</SelectItem>
+                    <SelectItem value="all-branches">All Branches</SelectItem>
                     {branches.map(branch => (
                       <SelectItem key={branch} value={branch}>{branch}</SelectItem>
                     ))}
@@ -94,7 +94,7 @@ export default function Mentoring() {
                     <SelectValue placeholder="Select Section" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Sections</SelectItem>
+                    <SelectItem value="all-sections">All Sections</SelectItem>
                     {sections.map(section => (
                       <SelectItem key={section} value={section}>Section {section}</SelectItem>
                     ))}
