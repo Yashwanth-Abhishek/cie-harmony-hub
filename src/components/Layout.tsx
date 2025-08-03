@@ -34,9 +34,11 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-pastel-blue to-pastel-lavender rounded-lg flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">C</span>
-            </div>
+            <img 
+              src="/lovable-uploads/efac296d-8c26-405c-bbf9-fedc89cad811.png" 
+              alt="MLR CIE Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="text-lg font-semibold text-foreground">CIE Calendar</h1>
               <p className="text-xs text-muted-foreground">Centre of Innovation and Entrepreneurship</p>

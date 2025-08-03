@@ -20,6 +20,8 @@ interface ContentPlan {
   publishDate?: string;
 }
 
+const teamMembers = ["Sarah Johnson", "Mike Chen", "Lisa Park"];
+
 const contentPlans: ContentPlan[] = [
   {
     id: "1",
@@ -49,21 +51,27 @@ const contentPlans: ContentPlan[] = [
   }
 ];
 
-// Calendar events for content planning
+// Calendar events for content planning (including holidays and events, shoot/edit/post dates)
 const contentEvents = [
-  { id: "1", title: "Workshop Video Shoot", date: "2024-02-20", type: "event" as const },
-  { id: "2", title: "Photo Session", date: "2024-03-01", type: "event" as const },
-  { id: "3", title: "Content Review", date: "2024-02-25", type: "event" as const }
+  { id: "1", title: "Workshop Video Shoot", date: "2024-02-20", type: "event" as const, category: "shoot" },
+  { id: "2", title: "Photo Session Edit", date: "2024-03-02", type: "event" as const, category: "edit" },
+  { id: "3", title: "Content Publish", date: "2024-02-25", type: "event" as const, category: "post" },
+  { id: "4", title: "Independence Day", date: "2024-08-15", type: "holiday" as const },
+  { id: "5", title: "Campus Tour Shoot", date: "2024-03-01", type: "event" as const, category: "shoot" }
 ];
 
 export default function Studios() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewType, setViewType] = useState<"calendar" | "dashboard" | "timeline">("calendar");
+  const [createdContent, setCreatedContent] = useState<any[]>([]);
   const [newContent, setNewContent] = useState({
     title: "",
     type: "",
     description: "",
     teamMember: "",
+    shootDate: "",
+    editDate: "",
+    postDate: "",
     documentFile: null as File | null
   });
 
@@ -86,6 +94,63 @@ export default function Studios() {
       default: return <Edit className="h-4 w-4" />;
     }
   };
+
+  const handleCreateContent = () => {
+    if (newContent.title && newContent.type && newContent.teamMember) {
+      const newContentPlan = {
+        id: Date.now().toString(),
+        ...newContent,
+        status: "planning"
+      };
+      
+      setCreatedContent(prev => [...prev, newContentPlan]);
+      
+      // Add events to calendar for shoot, edit, post dates
+      const newEvents = [];
+      if (newContent.shootDate) {
+        newEvents.push({
+          id: `shoot-${Date.now()}`,
+          title: `${newContent.title} - Shoot`,
+          date: newContent.shootDate,
+          type: "event",
+          category: "shoot"
+        });
+      }
+      if (newContent.editDate) {
+        newEvents.push({
+          id: `edit-${Date.now()}`,
+          title: `${newContent.title} - Edit`,
+          date: newContent.editDate,
+          type: "event",
+          category: "edit"
+        });
+      }
+      if (newContent.postDate) {
+        newEvents.push({
+          id: `post-${Date.now()}`,
+          title: `${newContent.title} - Post`,
+          date: newContent.postDate,
+          type: "event",
+          category: "post"
+        });
+      }
+      
+      setNewContent({
+        title: "",
+        type: "",
+        description: "",
+        teamMember: "",
+        shootDate: "",
+        editDate: "",
+        postDate: "",
+        documentFile: null
+      });
+      setShowCreateForm(false);
+    }
+  };
+
+  // Combine content events
+  const allContentEvents = [...contentEvents];
 
   return (
     <Layout currentPage="studios">
@@ -120,7 +185,7 @@ export default function Studios() {
         {viewType === "calendar" && (
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <Calendar events={contentEvents} />
+              <Calendar events={allContentEvents} />
             </div>
             <div>
               <Card className="card-soft">
@@ -276,12 +341,16 @@ export default function Studios() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Team Member</label>
-                  <Input 
-                    value={newContent.teamMember}
-                    onChange={(e) => setNewContent(prev => ({ ...prev, teamMember: e.target.value }))}
-                    placeholder="Assign to"
-                    className="mt-1"
-                  />
+                  <Select value={newContent.teamMember} onValueChange={(value) => setNewContent(prev => ({ ...prev, teamMember: value }))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select team member" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teamMembers.map(member => (
+                        <SelectItem key={member} value={member}>{member}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -294,6 +363,37 @@ export default function Studios() {
                   className="mt-1"
                   rows={3}
                 />
+              </div>
+
+              {/* Schedule Dates */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Shoot Date</label>
+                  <Input
+                    type="date"
+                    value={newContent.shootDate}
+                    onChange={(e) => setNewContent(prev => ({ ...prev, shootDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Edit Date</label>
+                  <Input
+                    type="date"
+                    value={newContent.editDate}
+                    onChange={(e) => setNewContent(prev => ({ ...prev, editDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Post Date</label>
+                  <Input
+                    type="date"
+                    value={newContent.postDate}
+                    onChange={(e) => setNewContent(prev => ({ ...prev, postDate: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
               </div>
 
               <div>
@@ -317,7 +417,7 @@ export default function Studios() {
                 >
                   Cancel
                 </Button>
-                <Button className="flex-1 btn-pastel">
+                <Button className="flex-1 btn-pastel" onClick={handleCreateContent}>
                   Create Content Plan
                 </Button>
               </div>

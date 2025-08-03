@@ -15,9 +15,19 @@ interface EventFormData {
   venue: string;
 }
 
+interface EventData {
+  id: string;
+  title: string;
+  date: string;
+  type: "event";
+  venue?: string;
+  description?: string;
+}
+
 export default function Events() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createdEvents, setCreatedEvents] = useState<EventData[]>([]);
   const [eventForm, setEventForm] = useState<EventFormData>({
     title: "",
     date: "",
@@ -71,6 +81,26 @@ export default function Events() {
   const workingDaysLeft = selectedDate ? calculateWorkingDays(selectedDate) : 0;
   const conflicts = selectedDate ? checkConflicts(selectedDate) : [];
 
+  const handleCreateEvent = () => {
+    if (eventForm.title && eventForm.date) {
+      const newEvent: EventData = {
+        id: Date.now().toString(),
+        title: eventForm.title,
+        date: eventForm.date,
+        type: "event",
+        venue: eventForm.venue,
+        description: eventForm.description
+      };
+      
+      setCreatedEvents(prev => [...prev, newEvent]);
+      setEventForm({ title: "", date: "", description: "", venue: "" });
+      setShowCreateForm(false);
+    }
+  };
+
+  // Combine created events for calendar display
+  const allEvents = [...createdEvents];
+
   return (
     <Layout currentPage="events">
       <div className="space-y-8">
@@ -91,7 +121,7 @@ export default function Events() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Calendar */}
           <div className="lg:col-span-2">
-            <Calendar onDateClick={handleDateClick} />
+            <Calendar events={allEvents} onDateClick={handleDateClick} />
           </div>
 
           {/* Event Planning Panel */}
@@ -191,10 +221,17 @@ export default function Events() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
-                    <Button className="flex-1 btn-soft">
-                      Save Draft
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setShowCreateForm(false)}
+                    >
+                      Cancel
                     </Button>
-                    <Button className="flex-1 btn-pastel">
+                    <Button 
+                      className="flex-1 btn-pastel"
+                      onClick={handleCreateEvent}
+                    >
                       Create Event
                     </Button>
                   </div>

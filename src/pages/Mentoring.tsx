@@ -2,9 +2,10 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, Calendar, Clock, CheckCircle, Circle } from "lucide-react";
+import { Download, Calendar, Clock, CheckCircle, Circle, Plus, Trash2 } from "lucide-react";
 
 const branches = ["Computer Science", "Electronics", "Mechanical", "Civil"];
 const sections = ["A", "B", "C", "D"];
@@ -17,7 +18,7 @@ const mentoringPrograms = [
     section: "A",
     startDate: "2024-03-01",
     duration: 8,
-    timeSlot: "Morning (9:00 AM - 11:00 AM)",
+    timeSlot: "Morning (10:10 AM - 11:50 AM)",
     mentor: "Dr. Sarah Johnson",
     studentsCount: 25
   },
@@ -28,7 +29,7 @@ const mentoringPrograms = [
     section: "B",
     startDate: "2024-03-08",
     duration: 8,
-    timeSlot: "Afternoon (2:00 PM - 4:00 PM)",
+    timeSlot: "Afternoon (2:20 PM - 4:00 PM)",
     mentor: "Prof. Michael Chen",
     studentsCount: 20
   }
@@ -45,10 +46,19 @@ const weeklyPlan = [
   { week: 8, topic: "Final Presentation", tasks: ["Project Demo", "Peer Review", "Future Planning"] }
 ];
 
+interface CustomTask {
+  id: string;
+  name: string;
+  week: number;
+}
+
 export default function Mentoring() {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<typeof mentoringPrograms[0] | null>(null);
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
 
   const filteredPrograms = mentoringPrograms.filter(program => 
     (!selectedBranch || selectedBranch === "all-branches" || program.branch === selectedBranch) &&
@@ -59,6 +69,22 @@ export default function Mentoring() {
     // Simplified calculation - in real app, this would account for actual holidays
     const holidays = 1; // Assuming 1 week of holidays in 8 weeks
     return totalWeeks - holidays;
+  };
+
+  const addCustomTask = () => {
+    if (newTaskName.trim()) {
+      const newTask: CustomTask = {
+        id: Date.now().toString(),
+        name: newTaskName.trim(),
+        week: selectedWeek
+      };
+      setCustomTasks(prev => [...prev, newTask]);
+      setNewTaskName("");
+    }
+  };
+
+  const removeCustomTask = (taskId: string) => {
+    setCustomTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
   return (
@@ -190,15 +216,73 @@ export default function Mentoring() {
                     </div>
                     
                     <div className="space-y-2">
+                      {/* Default tasks */}
                       {week.tasks.map((task, index) => (
                         <div key={index} className="flex items-center gap-2 text-sm">
                           <Circle className="h-4 w-4 text-muted-foreground" />
                           <span>{task}</span>
                         </div>
                       ))}
+                      
+                      {/* Custom tasks for this week */}
+                      {customTasks
+                        .filter(task => task.week === week.week)
+                        .map((task) => (
+                          <div key={task.id} className="flex items-center gap-2 text-sm">
+                            <CheckCircle className="h-4 w-4 text-pastel-green" />
+                            <span className="text-pastel-green font-medium">{task.name}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeCustomTask(task.id)}
+                              className="h-4 w-4 p-0 ml-auto text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
                     </div>
                   </div>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Add Custom Task */}
+        {selectedProgram && (
+          <Card className="card-pastel">
+            <CardHeader>
+              <CardTitle className="text-lg">Add Custom Task</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="text-sm font-medium">Task Name</label>
+                  <Input
+                    value={newTaskName}
+                    onChange={(e) => setNewTaskName(e.target.value)}
+                    placeholder="Enter custom task name"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="w-32">
+                  <label className="text-sm font-medium">Week</label>
+                  <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1,2,3,4,5,6,7,8].map(week => (
+                        <SelectItem key={week} value={week.toString()}>Week {week}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={addCustomTask} className="btn-pastel">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
               </div>
             </CardContent>
           </Card>
