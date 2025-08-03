@@ -2,39 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* CIE Calendar Design System - Clean with pastel accents */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 220 25% 25%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 15% 95%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 25% 92%;
+    --accent-foreground: 0 0% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 75% 70%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 210 15% 90%;
+    --input: 210 15% 94%;
+    --ring: 220 25% 25%;
+
+    /* CIE Calendar Specific Colors */
+    --pastel-blue: 210 60% 85%;
+    --pastel-green: 120 40% 85%;
+    --pastel-yellow: 50 60% 88%;
+    --pastel-pink: 340 50% 88%;
+    --pastel-lavender: 260 40% 88%;
+    --pastel-peach: 25 60% 88%;
+
+    /* Academic Calendar Colors */
+    --instruction-days: 120 50% 75%;
+    --exam-days: 0 60% 75%;
+    --holiday-days: 50 70% 80%;
+
+    /* Gradients */
+    --gradient-subtle: linear-gradient(135deg, hsl(var(--background)), hsl(210 20% 96%));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(210 25% 98%));
+
+    /* Shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(220 25% 25% / 0.08);
+    --shadow-medium: 0 4px 16px -4px hsl(220 25% 25% / 0.12);
+    --shadow-large: 0 8px 32px -8px hsl(220 25% 25% / 0.16);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --radius: 0.5rem;
 
@@ -100,6 +124,65 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Calendar Components */
+  .calendar-day {
+    @apply relative p-2 h-12 border border-border/30 transition-colors hover:bg-accent/50 cursor-pointer;
+  }
+
+  .calendar-day.holiday {
+    @apply bg-yellow-100/60 border-yellow-200;
+  }
+
+  .calendar-day.instruction {
+    @apply bg-green-100/60 border-green-200;
+  }
+
+  .calendar-day.exam {
+    @apply bg-red-100/60 border-red-200;
+  }
+
+  .calendar-day.event {
+    @apply bg-blue-100/60 border-blue-200;
+  }
+
+  /* Sidebar Components */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent text-foreground/80 hover:text-foreground;
+  }
+
+  .sidebar-item.active {
+    @apply bg-primary/10 text-primary border-r-2 border-primary;
+  }
+
+  /* Button Variants */
+  .btn-pastel {
+    @apply bg-gradient-to-r from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 text-foreground border border-border/50 transition-all duration-300 hover:shadow-md;
+  }
+
+  .btn-soft {
+    @apply bg-secondary/50 hover:bg-secondary text-secondary-foreground transition-all duration-200 border border-border/40;
+  }
+
+  /* Card Components */
+  .card-soft {
+    @apply bg-gradient-to-br from-card to-secondary/30 border border-border/50 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  .card-pastel {
+    @apply bg-gradient-to-br from-blue-50/50 to-purple-50/50 border border-blue-200/30 shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* Utility Classes */
+  .text-shadow {
+    text-shadow: 0 1px 2px hsl(var(--foreground) / 0.1);
+  }
+
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20;
   }
 }

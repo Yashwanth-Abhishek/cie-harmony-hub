@@ -1,13 +1,31 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Layout from "@/components/Layout";
+import Calendar from "@/components/Calendar";
+import UpcomingEvents from "@/components/UpcomingEvents";
+import CIEAbout from "@/components/CIEAbout";
 
 const Index = () => {
+  const handleDateClick = (date: Date) => {
+    console.log("Date clicked:", date);
+    // Here you could show event details or navigate to event planning
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <Layout currentPage="home">
+      <div className="space-y-8">
+        {/* Main Calendar Section */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Calendar onDateClick={handleDateClick} />
+          </div>
+          <div>
+            <UpcomingEvents />
+          </div>
+        </div>
+
+        {/* CIE Information Section */}
+        <CIEAbout />
       </div>
-    </div>
+    </Layout>
   );
 };
 

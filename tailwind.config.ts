@@ -61,6 +61,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// CIE Calendar Pastels
+				pastel: {
+					blue: 'hsl(var(--pastel-blue))',
+					green: 'hsl(var(--pastel-green))',
+					yellow: 'hsl(var(--pastel-yellow))',
+					pink: 'hsl(var(--pastel-pink))',
+					lavender: 'hsl(var(--pastel-lavender))',
+					peach: 'hsl(var(--pastel-peach))'
+				},
+				academic: {
+					instruction: 'hsl(var(--instruction-days))',
+					exam: 'hsl(var(--exam-days))',
+					holiday: 'hsl(var(--holiday-days))'
 				}
 			},
 			borderRadius: {
