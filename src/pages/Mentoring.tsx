@@ -184,7 +184,7 @@ export default function Mentoring() {
         </div>
 
         {/* Weekly Planner */}
-        {selectedProgram && (
+          {selectedProgram && (
           <Card className="card-soft">
             <CardHeader>
               <div className="flex items-center justify-between">
