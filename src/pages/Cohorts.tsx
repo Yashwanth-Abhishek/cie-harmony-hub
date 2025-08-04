@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Calendar, CheckCircle, Upload, FileText, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 interface CohortData {
   projectName: string;
@@ -73,8 +75,9 @@ const existingCohorts = [
 
 export default function Cohorts() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedCohort, setSelectedCohort] = useState<typeof existingCohorts[0] | null>(null);
+  const [selectedCohort, setSelectedCohort] = useState<Tables<'cohort_projects'> | null>(null);
   const [showTaskPlanner, setShowTaskPlanner] = useState(false);
+  const [cohorts, setCohorts] = useState<Tables<'cohort_projects'>[]>([]);
   const [cohortPlans, setCohortPlans] = useState<CohortPlan[]>([]);
   const [newTask, setNewTask] = useState({ name: "", deadline: "" });
   const [cohortForm, setCohortForm] = useState<CohortData>({
@@ -83,6 +86,24 @@ export default function Cohorts() {
     endDate: "",
     activeDays: []
   });
+
+  useEffect(() => {
+    fetchCohorts();
+  }, []);
+
+  const fetchCohorts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cohort_projects')
+        .select('*')
+        .order('start_date', { ascending: false });
+
+      if (error) throw error;
+      setCohorts(data || []);
+    } catch (error) {
+      console.error('Error fetching cohorts:', error);
+    }
+  };
 
   const handleDayToggle = (dayId: string, checked: boolean) => {
     setCohortForm(prev => ({
@@ -187,19 +208,19 @@ export default function Cohorts() {
                 <CardTitle>Active & Recent Cohorts</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {existingCohorts.map(cohort => (
+                {cohorts.map(cohort => (
                   <div key={cohort.id} className="border border-border/40 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="font-semibold text-foreground mb-1">{cohort.projectName}</h3>
+                        <h3 className="font-semibold text-foreground mb-1">{cohort.project_name}</h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {new Date(cohort.startDate).toLocaleDateString()} - {new Date(cohort.endDate).toLocaleDateString()}
+                            {new Date(cohort.start_date).toLocaleDateString()} - {new Date(cohort.end_date).toLocaleDateString()}
                           </div>
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            {cohort.participants} participants
+                            0 participants
                           </div>
                         </div>
                       </div>
@@ -208,7 +229,7 @@ export default function Cohorts() {
                           {cohort.status}
                         </Badge>
                         <div className="text-sm text-muted-foreground">
-                          {cohort.progress}% complete
+                          {cohort.progress || 0}% complete
                         </div>
                       </div>
                     </div>
@@ -216,24 +237,22 @@ export default function Cohorts() {
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Active Days:</div>
                       <div className="flex flex-wrap gap-1">
-                        {cohort.activeDays.map(day => (
-                          <Badge key={day} variant="outline" className="bg-pastel-blue/20 text-xs">
-                            {weekDays.find(d => d.id === day)?.label.slice(0, 3)}
-                          </Badge>
-                        ))}
+                        <Badge variant="outline" className="bg-pastel-blue/20 text-xs">
+                          Mon-Fri
+                        </Badge>
                       </div>
                     </div>
 
                     <div className="mt-3 w-full bg-muted rounded-full h-2">
                       <div 
                         className="bg-gradient-to-r from-pastel-green to-pastel-blue h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${cohort.progress}%` }}
+                        style={{ width: `${cohort.progress || 0}%` }}
                       />
                     </div>
 
                     <div className="mt-3 flex items-center justify-between">
                       <div className="text-sm text-muted-foreground">
-                        Duration: {calculateDuration(cohort.startDate, cohort.endDate)} weeks
+                        Duration: {calculateDuration(cohort.start_date, cohort.end_date)} weeks
                       </div>
                       <Button
                         variant="outline"
@@ -364,7 +383,7 @@ export default function Cohorts() {
             {showTaskPlanner && selectedCohort && (
               <Card className="card-pastel">
                 <CardHeader>
-                  <CardTitle className="text-lg">Task Planner - {selectedCohort.projectName}</CardTitle>
+                  <CardTitle className="text-lg">Task Planner - {selectedCohort.project_name}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Upload Document */}

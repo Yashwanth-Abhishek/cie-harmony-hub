@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import Calendar from "@/components/Calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Camera, Edit, Share, Upload, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 interface ContentPlan {
   id: string;
@@ -63,7 +65,7 @@ const contentEvents = [
 export default function Studios() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [viewType, setViewType] = useState<"calendar" | "dashboard" | "timeline">("calendar");
-  const [createdContent, setCreatedContent] = useState<any[]>([]);
+  const [studioContent, setStudioContent] = useState<Tables<'studio_content'>[]>([]);
   const [newContent, setNewContent] = useState({
     title: "",
     type: "",
@@ -74,6 +76,24 @@ export default function Studios() {
     postDate: "",
     documentFile: null as File | null
   });
+
+  useEffect(() => {
+    fetchStudioContent();
+  }, []);
+
+  const fetchStudioContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('studio_content')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setStudioContent(data || []);
+    } catch (error) {
+      console.error('Error fetching studio content:', error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,62 +115,77 @@ export default function Studios() {
     }
   };
 
-  const handleCreateContent = () => {
+  const handleCreateContent = async () => {
     if (newContent.title && newContent.type && newContent.teamMember) {
-      const newContentPlan = {
-        id: Date.now().toString(),
-        ...newContent,
-        status: "planning"
-      };
-      
-      setCreatedContent(prev => [...prev, newContentPlan]);
-      
-      // Add events to calendar for shoot, edit, post dates
-      const newEvents = [];
-      if (newContent.shootDate) {
-        newEvents.push({
-          id: `shoot-${Date.now()}`,
-          title: `${newContent.title} - Shoot`,
-          date: newContent.shootDate,
-          type: "event",
-          category: "shoot"
+      try {
+        const { error } = await supabase
+          .from('studio_content')
+          .insert({
+            title: newContent.title,
+            content_type: newContent.type,
+            team_members: [newContent.teamMember],
+            shoot_date: newContent.shootDate || null,
+            edit_date: newContent.editDate || null,
+            post_date: newContent.postDate || null,
+            status: 'planning'
+          });
+
+        if (error) throw error;
+        
+        // Refresh content
+        await fetchStudioContent();
+        setNewContent({
+          title: "",
+          type: "",
+          description: "",
+          teamMember: "",
+          shootDate: "",
+          editDate: "",
+          postDate: "",
+          documentFile: null
         });
+        setShowCreateForm(false);
+      } catch (error) {
+        console.error('Error creating content:', error);
       }
-      if (newContent.editDate) {
-        newEvents.push({
-          id: `edit-${Date.now()}`,
-          title: `${newContent.title} - Edit`,
-          date: newContent.editDate,
-          type: "event",
-          category: "edit"
-        });
-      }
-      if (newContent.postDate) {
-        newEvents.push({
-          id: `post-${Date.now()}`,
-          title: `${newContent.title} - Post`,
-          date: newContent.postDate,
-          type: "event",
-          category: "post"
-        });
-      }
-      
-      setNewContent({
-        title: "",
-        type: "",
-        description: "",
-        teamMember: "",
-        shootDate: "",
-        editDate: "",
-        postDate: "",
-        documentFile: null
-      });
-      setShowCreateForm(false);
     }
   };
 
-  // Combine content events
-  const allContentEvents = [...contentEvents];
+  // Convert database content to calendar events
+  const allContentEvents = [
+    ...contentEvents, // Keep static holiday events
+    ...studioContent.flatMap(content => {
+      const events = [];
+      if (content.shoot_date) {
+        events.push({
+          id: `shoot-${content.id}`,
+          title: `${content.title} - Shoot`,
+          date: content.shoot_date,
+          type: "event" as const,
+          category: "shoot"
+        });
+      }
+      if (content.edit_date) {
+        events.push({
+          id: `edit-${content.id}`,
+          title: `${content.title} - Edit`,
+          date: content.edit_date,
+          type: "event" as const,
+          category: "edit"
+        });
+      }
+      if (content.post_date) {
+        events.push({
+          id: `publish-${content.id}`,
+          title: `${content.title} - Publish`,
+          date: content.post_date,
+          type: "event" as const,
+          category: "post"
+        });
+      }
+      return events;
+    })
+  ];
 
   return (
     <Layout currentPage="studios">
@@ -228,14 +263,14 @@ export default function Studios() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {contentPlans.map(content => (
+                {studioContent.map(content => (
                   <div key={content.id} className="border border-border/40 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        {getTypeIcon(content.type)}
+                        {getTypeIcon(content.content_type)}
                         <h3 className="font-semibold text-foreground">{content.title}</h3>
                         <Badge variant="outline" className="bg-muted/50">
-                          {content.type}
+                          {content.content_type}
                         </Badge>
                       </div>
                       <Badge className={getStatusColor(content.status)}>
@@ -246,24 +281,24 @@ export default function Studios() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <span className="text-muted-foreground">Team Member:</span>
-                        <p className="font-medium">{content.teamMember}</p>
+                        <p className="font-medium">{content.team_members?.[0] || 'Unassigned'}</p>
                       </div>
-                      {content.shootDate && (
+                      {content.shoot_date && (
                         <div>
                           <span className="text-muted-foreground">Shoot Date:</span>
-                          <p className="font-medium">{new Date(content.shootDate).toLocaleDateString()}</p>
+                          <p className="font-medium">{new Date(content.shoot_date).toLocaleDateString()}</p>
                         </div>
                       )}
-                      {content.editDate && (
+                      {content.edit_date && (
                         <div>
                           <span className="text-muted-foreground">Edit Date:</span>
-                          <p className="font-medium">{new Date(content.editDate).toLocaleDateString()}</p>
+                          <p className="font-medium">{new Date(content.edit_date).toLocaleDateString()}</p>
                         </div>
                       )}
-                      {content.publishDate && (
+                      {content.post_date && (
                         <div>
                           <span className="text-muted-foreground">Publish Date:</span>
-                          <p className="font-medium">{new Date(content.publishDate).toLocaleDateString()}</p>
+                          <p className="font-medium">{new Date(content.post_date).toLocaleDateString()}</p>
                         </div>
                       )}
                     </div>

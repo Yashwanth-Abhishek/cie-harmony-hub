@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import Calendar from "@/components/Calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, AlertTriangle, Calendar as CalendarIcon, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 interface EventFormData {
   title: string;
@@ -27,13 +29,31 @@ interface EventData {
 export default function Events() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createdEvents, setCreatedEvents] = useState<EventData[]>([]);
+  const [events, setEvents] = useState<Tables<'events'>[]>([]);
   const [eventForm, setEventForm] = useState<EventFormData>({
     title: "",
     date: "",
     description: "",
     venue: ""
   });
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('event_date', { ascending: true });
+
+      if (error) throw error;
+      setEvents(data || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
@@ -81,25 +101,40 @@ export default function Events() {
   const workingDaysLeft = selectedDate ? calculateWorkingDays(selectedDate) : 0;
   const conflicts = selectedDate ? checkConflicts(selectedDate) : [];
 
-  const handleCreateEvent = () => {
+  const handleCreateEvent = async () => {
     if (eventForm.title && eventForm.date) {
-      const newEvent: EventData = {
-        id: Date.now().toString(),
-        title: eventForm.title,
-        date: eventForm.date,
-        type: "event",
-        venue: eventForm.venue,
-        description: eventForm.description
-      };
-      
-      setCreatedEvents(prev => [...prev, newEvent]);
-      setEventForm({ title: "", date: "", description: "", venue: "" });
-      setShowCreateForm(false);
+      try {
+        const { error } = await supabase
+          .from('events')
+          .insert({
+            title: eventForm.title,
+            event_date: eventForm.date,
+            description: eventForm.description,
+            event_type: 'academic',
+            section: 'general',
+            year: new Date().getFullYear()
+          });
+
+        if (error) throw error;
+        
+        // Refresh events
+        await fetchEvents();
+        setEventForm({ title: "", date: "", description: "", venue: "" });
+        setShowCreateForm(false);
+      } catch (error) {
+        console.error('Error creating event:', error);
+      }
     }
   };
 
-  // Combine created events for calendar display
-  const allEvents = [...createdEvents];
+  // Convert database events to calendar format
+  const allEvents = events.map(event => ({
+    id: event.id.toString(),
+    title: event.title,
+    date: event.event_date,
+    type: "event" as const,
+    description: event.description
+  }));
 
   return (
     <Layout currentPage="events">
