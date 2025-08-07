@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Layout from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -122,7 +123,8 @@ export default function Mentoring() {
   };
 
   return (
-    <div className="space-y-6">
+    <Layout currentPage="mentoring">
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Mentoring Program</h1>
@@ -296,6 +298,7 @@ export default function Mentoring() {
           </div>
         </Card>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }
