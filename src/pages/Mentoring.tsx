@@ -1,293 +1,301 @@
-import { useState } from "react";
-import Layout from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Calendar, Clock, CheckCircle, Circle, Plus, Trash2 } from "lucide-react";
+import { Download, Clock, Calendar } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+
+interface MentoringWeek {
+  weekNumber: number;
+  startDate: string;
+  endDate: string;
+  tasks: { id: string; text: string; completed: boolean }[];
+  isHoliday: boolean;
+}
+
+interface MentoringTask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
 
 const branches = ["Computer Science", "Electronics", "Mechanical", "Civil"];
 const sections = ["A", "B", "C", "D"];
+const timeSlots = ["Morning (10:10 AM - 11:50 AM)", "Afternoon (2:20 PM - 4:00 PM)"];
 
-const mentoringPrograms = [
-  {
-    id: "1",
-    title: "Product Development Mentoring",
-    branch: "Computer Science",
-    section: "A",
-    startDate: "2024-03-01",
-    duration: 8,
-    timeSlot: "Morning (10:10 AM - 11:50 AM)",
-    mentor: "Dr. Sarah Johnson",
-    studentsCount: 25
-  },
-  {
-    id: "2", 
-    title: "Innovation & Entrepreneurship",
-    branch: "Electronics",
-    section: "B",
-    startDate: "2024-03-08",
-    duration: 8,
-    timeSlot: "Afternoon (2:20 PM - 4:00 PM)",
-    mentor: "Prof. Michael Chen",
-    studentsCount: 20
+const generateMentoringWeeks = (startDate: Date): MentoringWeek[] => {
+  const weeks: MentoringWeek[] = [];
+  const currentDate = new Date(startDate);
+  
+  for (let i = 0; i < 8; i++) {
+    const weekStart = new Date(currentDate);
+    const weekEnd = new Date(currentDate);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    weeks.push({
+      weekNumber: i + 1,
+      startDate: weekStart.toISOString().split('T')[0],
+      endDate: weekEnd.toISOString().split('T')[0],
+      tasks: [
+        { id: `${i + 1}-1`, text: `Week ${i + 1} - Orientation and Goal Setting`, completed: false },
+        { id: `${i + 1}-2`, text: "Industry insights discussion", completed: false },
+        { id: `${i + 1}-3`, text: "Project planning and roadmap", completed: false }
+      ],
+      isHoliday: i === 3 // Sample holiday week
+    });
+    
+    currentDate.setDate(currentDate.getDate() + 7);
   }
-];
-
-const weeklyPlan = [
-  { week: 1, topic: "Introduction & Goal Setting", tasks: ["Self Assessment", "Goal Definition", "Mentor Introduction"] },
-  { week: 2, topic: "Skill Gap Analysis", tasks: ["Skill Mapping", "Industry Requirements", "Learning Path"] },
-  { week: 3, topic: "Project Planning", tasks: ["Project Selection", "Timeline Creation", "Resource Planning"] },
-  { week: 4, topic: "Implementation Phase 1", tasks: ["Project Kickoff", "Initial Development", "Progress Review"] },
-  { week: 5, topic: "Mid-Program Review", tasks: ["Progress Assessment", "Feedback Session", "Course Correction"] },
-  { week: 6, topic: "Implementation Phase 2", tasks: ["Advanced Development", "Testing", "Refinement"] },
-  { week: 7, topic: "Presentation Preparation", tasks: ["Demo Preparation", "Documentation", "Pitch Practice"] },
-  { week: 8, topic: "Final Presentation", tasks: ["Project Demo", "Peer Review", "Future Planning"] }
-];
-
-interface CustomTask {
-  id: string;
-  name: string;
-  week: number;
-}
+  
+  return weeks;
+};
 
 export default function Mentoring() {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-  const [selectedProgram, setSelectedProgram] = useState<typeof mentoringPrograms[0] | null>(null);
-  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);
-  const [newTaskName, setNewTaskName] = useState("");
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [mentoringWeeks, setMentoringWeeks] = useState<MentoringWeek[]>([]);
+  const [newTaskText, setNewTaskText] = useState("");
+  const [editingWeek, setEditingWeek] = useState<number | null>(null);
+  
+  // Generate weeks when startDate changes
+  useEffect(() => {
+    if (startDate) {
+      setMentoringWeeks(generateMentoringWeeks(new Date(startDate)));
+    }
+  }, [startDate]);
 
-  const filteredPrograms = mentoringPrograms.filter(program => 
-    (!selectedBranch || selectedBranch === "all-branches" || program.branch === selectedBranch) &&
-    (!selectedSection || selectedSection === "all-sections" || program.section === selectedSection)
-  );
+  const workingWeeks = mentoringWeeks.filter(week => !week.isHoliday);
 
-  const calculateWorkingWeeks = (startDate: string, totalWeeks: number) => {
-    // Simplified calculation - in real app, this would account for actual holidays
-    const holidays = 1; // Assuming 1 week of holidays in 8 weeks
-    return totalWeeks - holidays;
-  };
-
-  const addCustomTask = () => {
-    if (newTaskName.trim()) {
-      const newTask: CustomTask = {
-        id: Date.now().toString(),
-        name: newTaskName.trim(),
-        week: selectedWeek
-      };
-      setCustomTasks(prev => [...prev, newTask]);
-      setNewTaskName("");
+  const addTask = (weekNumber: number) => {
+    if (newTaskText.trim()) {
+      setMentoringWeeks(prev => prev.map(week => 
+        week.weekNumber === weekNumber 
+          ? {
+              ...week,
+              tasks: [...week.tasks, {
+                id: Date.now().toString(),
+                text: newTaskText,
+                completed: false
+              }]
+            }
+          : week
+      ));
+      setNewTaskText("");
+      setEditingWeek(null);
     }
   };
 
-  const removeCustomTask = (taskId: string) => {
-    setCustomTasks(prev => prev.filter(task => task.id !== taskId));
+  const toggleTask = (weekNumber: number, taskId: string) => {
+    setMentoringWeeks(prev => prev.map(week => 
+      week.weekNumber === weekNumber 
+        ? {
+            ...week,
+            tasks: week.tasks.map(task => 
+              task.id === taskId ? { ...task, completed: !task.completed } : task
+            )
+          }
+        : week
+    ));
+  };
+
+  const downloadCalendar = () => {
+    // Create calendar data for download
+    const calendarData = {
+      branch: selectedBranch,
+      section: selectedSection,
+      timeSlot: selectedTimeSlot,
+      weeks: mentoringWeeks
+    };
+    
+    const blob = new Blob([JSON.stringify(calendarData, null, 2)], { 
+      type: 'application/json' 
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mentoring-calendar-${selectedBranch}-${selectedSection}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <Layout currentPage="mentoring">
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Mentoring Programs</h1>
-            <p className="text-muted-foreground mt-1">8-week structured mentoring for students</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Mentoring Program</h1>
+          <p className="text-muted-foreground">8-week mentoring program management</p>
         </div>
-
-        {/* Filters */}
-        <Card className="card-soft">
-          <CardContent className="p-6">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1">
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-branches">All Branches</SelectItem>
-                    {branches.map(branch => (
-                      <SelectItem key={branch} value={branch}>{branch}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <Select value={selectedSection} onValueChange={setSelectedSection}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Section" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all-sections">All Sections</SelectItem>
-                    {sections.map(section => (
-                      <SelectItem key={section} value={section}>Section {section}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mentoring Programs List */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {filteredPrograms.map(program => {
-            const workingWeeks = calculateWorkingWeeks(program.startDate, program.duration);
-            
-            return (
-              <Card key={program.id} className="card-pastel cursor-pointer hover:shadow-lg transition-all" 
-                    onClick={() => setSelectedProgram(program)}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{program.title}</CardTitle>
-                    <Badge variant="outline" className="bg-pastel-green/30">
-                      {program.duration} weeks
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Branch:</span>
-                      <p className="font-medium">{program.branch}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Section:</span>
-                      <p className="font-medium">{program.section}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Start Date:</span>
-                      <p className="font-medium">{new Date(program.startDate).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Time:</span>
-                      <p className="font-medium">{program.timeSlot}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2 border-t border-border/30">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Mentor: {program.mentor}</span>
-                      <Badge variant="secondary">{program.studentsCount} students</Badge>
-                    </div>
-                    <div className="mt-2 text-sm">
-                      <span className="text-pastel-green font-medium">{workingWeeks} working weeks</span>
-                      <span className="text-muted-foreground"> (excluding holidays)</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Weekly Planner */}
-          {selectedProgram && (
-          <Card className="card-soft">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Weekly Planner - {selectedProgram.title}
-                </CardTitle>
-                <Button variant="outline" size="sm" className="btn-pastel">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Calendar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {weeklyPlan.map((week) => (
-                  <div key={week.week} className="border border-border/40 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="bg-primary/10">
-                          Week {week.week}
-                        </Badge>
-                        <h3 className="font-semibold text-foreground">{week.topic}</h3>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {selectedProgram.timeSlot}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {/* Default tasks */}
-                      {week.tasks.map((task, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <Circle className="h-4 w-4 text-muted-foreground" />
-                          <span>{task}</span>
-                        </div>
-                      ))}
-                      
-                      {/* Custom tasks for this week */}
-                      {customTasks
-                        .filter(task => task.week === week.week)
-                        .map((task) => (
-                          <div key={task.id} className="flex items-center gap-2 text-sm">
-                            <CheckCircle className="h-4 w-4 text-pastel-green" />
-                            <span className="text-pastel-green font-medium">{task.name}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeCustomTask(task.id)}
-                              className="h-4 w-4 p-0 ml-auto text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Add Custom Task */}
-        {selectedProgram && (
-          <Card className="card-pastel">
-            <CardHeader>
-              <CardTitle className="text-lg">Add Custom Task</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 items-end">
-                <div className="flex-1">
-                  <label className="text-sm font-medium">Task Name</label>
-                  <Input
-                    value={newTaskName}
-                    onChange={(e) => setNewTaskName(e.target.value)}
-                    placeholder="Enter custom task name"
-                    className="mt-1"
-                  />
-                </div>
-                <div className="w-32">
-                  <label className="text-sm font-medium">Week</label>
-                  <Select value={selectedWeek.toString()} onValueChange={(value) => setSelectedWeek(parseInt(value))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1,2,3,4,5,6,7,8].map(week => (
-                        <SelectItem key={week} value={week.toString()}>Week {week}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={addCustomTask} className="btn-pastel">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Task
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        
+        {mentoringWeeks.length > 0 && (
+          <Button onClick={downloadCalendar} className="gap-2">
+            <Download className="w-4 h-4" />
+            Download Calendar
+          </Button>
         )}
       </div>
-    </Layout>
+
+      {/* Filters */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Program Configuration</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Branch</label>
+            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((branch) => (
+                  <SelectItem key={branch} value={branch}>{branch}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Section</label>
+            <Select value={selectedSection} onValueChange={setSelectedSection}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Section" />
+              </SelectTrigger>
+              <SelectContent>
+                {sections.map((section) => (
+                  <SelectItem key={section} value={section}>Section {section}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Time Slot</label>
+            <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map((slot) => (
+                  <SelectItem key={slot} value={slot}>{slot}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Program Overview */}
+      {mentoringWeeks.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Weeks</p>
+                <p className="text-2xl font-bold text-foreground">8 weeks</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Clock className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Working Weeks</p>
+                <p className="text-2xl font-bold text-foreground">{workingWeeks.length} weeks</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Badge className="w-8 h-8 flex items-center justify-center bg-academic-holidays">H</Badge>
+              <div>
+                <p className="text-sm text-muted-foreground">Holiday Weeks</p>
+                <p className="text-2xl font-bold text-foreground">{mentoringWeeks.length - workingWeeks.length} weeks</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Weekly Planner */}
+      {mentoringWeeks.length > 0 && (
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">8-Week Mentoring Plan</h2>
+          <div className="space-y-4">
+            {mentoringWeeks.map((week) => (
+              <div key={week.weekNumber} className={`border rounded-lg p-4 ${week.isHoliday ? 'bg-academic-holidays/20' : 'bg-background'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={week.isHoliday ? "secondary" : "default"}>
+                      Week {week.weekNumber}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(week.startDate).toLocaleDateString()} - {new Date(week.endDate).toLocaleDateString()}
+                    </span>
+                    {week.isHoliday && (
+                      <Badge variant="outline" className="bg-academic-holidays text-foreground">
+                        Holiday Week
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  {week.tasks.map((task) => (
+                    <div key={task.id} className="flex items-center gap-2">
+                      <Checkbox 
+                        id={`week-${week.weekNumber}-task-${task.id}`}
+                        checked={task.completed}
+                        onCheckedChange={() => toggleTask(week.weekNumber, task.id)}
+                      />
+                      <label htmlFor={`week-${week.weekNumber}-task-${task.id}`} className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.text}
+                      </label>
+                    </div>
+                  ))}
+                  
+                  {editingWeek === week.weekNumber ? (
+                    <div className="flex items-center gap-2 mt-2">
+                      <input
+                        type="text"
+                        value={newTaskText}
+                        onChange={(e) => setNewTaskText(e.target.value)}
+                        placeholder="Add new task..."
+                        className="flex-1 px-2 py-1 border border-border rounded text-sm"
+                        onKeyPress={(e) => e.key === 'Enter' && addTask(week.weekNumber)}
+                      />
+                      <Button size="sm" onClick={() => addTask(week.weekNumber)}>Add</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingWeek(null)}>Cancel</Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setEditingWeek(week.weekNumber)}
+                      className="mt-2"
+                    >
+                      Add Task
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+    </div>
   );
 }
