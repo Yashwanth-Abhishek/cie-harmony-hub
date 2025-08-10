@@ -1,464 +1,394 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Layout from "@/components/Layout";
-import Calendar from "@/components/Calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Camera, Edit, Share, Upload, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { Tables } from "@/integrations/supabase/types";
+import { Plus, Video, Edit, Share2, Upload, Calendar, Users } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface ContentPlan {
   id: string;
   title: string;
-  type: "video" | "photo" | "article" | "social";
-  status: "planning" | "shooting" | "editing" | "published";
+  type: 'video' | 'podcast' | 'blog' | 'social';
+  status: 'planning' | 'shoot' | 'edit' | 'post' | 'completed';
+  shootDate: string;
+  editDate: string;
+  postDate: string;
   teamMember: string;
-  shootDate?: string;
-  editDate?: string;
-  publishDate?: string;
+  projectDocument?: string;
 }
 
-const teamMembers = ["Sarah Johnson", "Mike Chen", "Lisa Park"];
+const contentTypes = ['video', 'podcast', 'blog', 'social'];
+const statusTypes = ['planning', 'shoot', 'edit', 'post', 'completed'];
+const teamMembers = ['Alice Johnson', 'Bob Smith', 'Carol Davis'];
 
-const contentPlans: ContentPlan[] = [
-  {
-    id: "1",
-    title: "Innovation Workshop Highlights",
-    type: "video",
-    status: "editing",
-    teamMember: "Sarah Johnson",
-    shootDate: "2024-02-20",
-    editDate: "2024-02-22",
-    publishDate: "2024-02-25"
-  },
-  {
-    id: "2",
-    title: "Student Success Stories",
-    type: "article",
-    status: "published",
-    teamMember: "Mike Chen",
-    publishDate: "2024-02-18"
-  },
-  {
-    id: "3",
-    title: "CIE Campus Tour",
-    type: "photo",
-    status: "planning",
-    teamMember: "Lisa Park",
-    shootDate: "2024-03-01"
-  }
-];
+export default function CIEStudios() {
+  const [contentPlans, setContentPlans] = useState<ContentPlan[]>([
+    {
+      id: '1',
+      title: 'Innovation in Tech Startups',
+      type: 'video',
+      status: 'edit',
+      shootDate: '2024-08-20',
+      editDate: '2024-08-25',
+      postDate: '2024-09-01',
+      teamMember: 'Alice Johnson',
+      projectDocument: 'tech-startups-brief.pdf'
+    },
+    {
+      id: '2',
+      title: 'Entrepreneurship Podcast Episode 5',
+      type: 'podcast',
+      status: 'planning',
+      shootDate: '2024-09-10',
+      editDate: '2024-09-12',
+      postDate: '2024-09-15',
+      teamMember: 'Bob Smith'
+    }
+  ]);
 
-// Calendar events for content planning (including holidays and events, shoot/edit/post dates)
-const contentEvents = [
-  { id: "1", title: "Workshop Video Shoot", date: "2024-02-20", type: "event" as const, category: "shoot" },
-  { id: "2", title: "Photo Session Edit", date: "2024-03-02", type: "event" as const, category: "edit" },
-  { id: "3", title: "Content Publish", date: "2024-02-25", type: "event" as const, category: "post" },
-  { id: "4", title: "Independence Day", date: "2024-08-15", type: "holiday" as const },
-  { id: "5", title: "Campus Tour Shoot", date: "2024-03-01", type: "event" as const, category: "shoot" }
-];
-
-export default function Studios() {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [viewType, setViewType] = useState<"calendar" | "dashboard" | "timeline">("calendar");
-  const [studioContent, setStudioContent] = useState<Tables<'studio_content'>[]>([]);
   const [newContent, setNewContent] = useState({
-    title: "",
-    type: "",
-    description: "",
-    teamMember: "",
-    shootDate: "",
-    editDate: "",
-    postDate: "",
-    documentFile: null as File | null
+    title: '',
+    type: 'video' as ContentPlan['type'],
+    shootDate: '',
+    editDate: '',
+    postDate: '',
+    teamMember: '',
+    projectDocument: ''
   });
 
-  useEffect(() => {
-    fetchStudioContent();
-  }, []);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const fetchStudioContent = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('studio_content')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setStudioContent(data || []);
-    } catch (error) {
-      console.error('Error fetching studio content:', error);
+  const createContentPlan = () => {
+    if (newContent.title && newContent.shootDate && selectedFile) {
+      const plan: ContentPlan = {
+        id: Date.now().toString(),
+        ...newContent,
+        status: 'planning',
+        projectDocument: selectedFile.name
+      };
+      setContentPlans([...contentPlans, plan]);
+      setNewContent({
+        title: '',
+        type: 'video',
+        shootDate: '',
+        editDate: '',
+        postDate: '',
+        teamMember: '',
+        projectDocument: ''
+      });
+      setSelectedFile(null);
+      setIsDialogOpen(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: ContentPlan['status']) => {
     switch (status) {
-      case "planning": return "bg-pastel-yellow/50 text-yellow-700";
-      case "shooting": return "bg-pastel-blue/50 text-blue-700";
-      case "editing": return "bg-pastel-peach/50 text-orange-700";
-      case "published": return "bg-pastel-green/50 text-green-700";
-      default: return "bg-muted/50 text-muted-foreground";
+      case 'planning':
+        return 'bg-academic-holidays';
+      case 'shoot':
+        return 'bg-primary';
+      case 'edit':
+        return 'bg-academic-instruction';
+      case 'post':
+        return 'bg-pastel-blue';
+      case 'completed':
+        return 'bg-academic-instruction';
+      default:
+        return 'bg-muted';
     }
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: ContentPlan['type']) => {
     switch (type) {
-      case "video": return <Camera className="h-4 w-4" />;
-      case "photo": return <Camera className="h-4 w-4" />;
-      case "article": return <Edit className="h-4 w-4" />;
-      case "social": return <Share className="h-4 w-4" />;
-      default: return <Edit className="h-4 w-4" />;
+      case 'video':
+        return <Video className="w-4 h-4" />;
+      case 'podcast':
+        return <Users className="w-4 h-4" />;
+      case 'blog':
+        return <Edit className="w-4 h-4" />;
+      case 'social':
+        return <Share2 className="w-4 h-4" />;
+      default:
+        return <Video className="w-4 h-4" />;
     }
   };
 
-  const handleCreateContent = async () => {
-    if (newContent.title && newContent.type && newContent.teamMember) {
-      try {
-        const { error } = await supabase
-          .from('studio_content')
-          .insert({
-            title: newContent.title,
-            content_type: newContent.type,
-            team_members: [newContent.teamMember],
-            shoot_date: newContent.shootDate || null,
-            edit_date: newContent.editDate || null,
-            post_date: newContent.postDate || null,
-            status: 'planning'
-          });
-
-        if (error) throw error;
-        
-        // Refresh content
-        await fetchStudioContent();
-        setNewContent({
-          title: "",
-          type: "",
-          description: "",
-          teamMember: "",
-          shootDate: "",
-          editDate: "",
-          postDate: "",
-          documentFile: null
-        });
-        setShowCreateForm(false);
-      } catch (error) {
-        console.error('Error creating content:', error);
-      }
-    }
-  };
-
-  // Convert database content to calendar events
-  const allContentEvents = [
-    ...contentEvents, // Keep static holiday events
-    ...studioContent.flatMap(content => {
-      const events = [];
-      if (content.shoot_date) {
-        events.push({
-          id: `shoot-${content.id}`,
-          title: `${content.title} - Shoot`,
-          date: content.shoot_date,
-          type: "event" as const,
-          category: "shoot"
-        });
-      }
-      if (content.edit_date) {
-        events.push({
-          id: `edit-${content.id}`,
-          title: `${content.title} - Edit`,
-          date: content.edit_date,
-          type: "event" as const,
-          category: "edit"
-        });
-      }
-      if (content.post_date) {
-        events.push({
-          id: `publish-${content.id}`,
-          title: `${content.title} - Publish`,
-          date: content.post_date,
-          type: "event" as const,
-          category: "post"
-        });
-      }
-      return events;
-    })
-  ];
+  const upcomingContent = contentPlans
+    .filter(plan => new Date(plan.shootDate) >= new Date())
+    .sort((a, b) => new Date(a.shootDate).getTime() - new Date(b.shootDate).getTime());
 
   return (
     <Layout currentPage="studios">
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">CIE Studios</h1>
-            <p className="text-muted-foreground mt-1">Content planning and production management</p>
+            <p className="text-muted-foreground">Content planning and production management</p>
           </div>
-          <div className="flex gap-2">
-            <Select value={viewType} onValueChange={(value: any) => setViewType(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="calendar">Calendar</SelectItem>
-                <SelectItem value="dashboard">Dashboard</SelectItem>
-                <SelectItem value="timeline">Timeline</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={() => setShowCreateForm(true)} 
-              className="btn-pastel"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Content Plan
-            </Button>
-          </div>
-        </div>
-
-        {/* Calendar View */}
-        {viewType === "calendar" && (
-          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Calendar events={allContentEvents} />
-            </div>
-            <div>
-              <Card className="card-soft">
-                <CardHeader>
-                  <CardTitle className="text-lg">Production Schedule</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-pastel-blue rounded-full"></div>
-                      <span className="text-sm">Shoot</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">3 this month</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-pastel-peach rounded-full"></div>
-                      <span className="text-sm">Edit</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">2 this month</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-pastel-green rounded-full"></div>
-                      <span className="text-sm">Publish</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">4 this month</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {/* Dashboard View */}
-        {viewType === "dashboard" && (
-          <Card className="card-soft">
-            <CardHeader>
-              <CardTitle>Studio Dashboard</CardTitle>
-            </CardHeader>
-            <CardContent>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add New Content Plan
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Create New Content Plan</DialogTitle>
+              </DialogHeader>
               <div className="space-y-4">
-                {studioContent.map(content => (
-                  <div key={content.id} className="border border-border/40 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        {getTypeIcon(content.content_type)}
-                        <h3 className="font-semibold text-foreground">{content.title}</h3>
-                        <Badge variant="outline" className="bg-muted/50">
-                          {content.content_type}
-                        </Badge>
-                      </div>
-                      <Badge className={getStatusColor(content.status)}>
-                        {content.status}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Team Member:</span>
-                        <p className="font-medium">{content.team_members?.[0] || 'Unassigned'}</p>
-                      </div>
-                      {content.shoot_date && (
-                        <div>
-                          <span className="text-muted-foreground">Shoot Date:</span>
-                          <p className="font-medium">{new Date(content.shoot_date).toLocaleDateString()}</p>
-                        </div>
-                      )}
-                      {content.edit_date && (
-                        <div>
-                          <span className="text-muted-foreground">Edit Date:</span>
-                          <p className="font-medium">{new Date(content.edit_date).toLocaleDateString()}</p>
-                        </div>
-                      )}
-                      {content.post_date && (
-                        <div>
-                          <span className="text-muted-foreground">Publish Date:</span>
-                          <p className="font-medium">{new Date(content.post_date).toLocaleDateString()}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Timeline View */}
-        {viewType === "timeline" && (
-          <Card className="card-soft">
-            <CardHeader>
-              <CardTitle>Monthly Content Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                {[1, 2, 3, 4].map(week => (
-                  <div key={week} className="relative">
-                    <div className="flex items-center gap-4 mb-4">
-                      <Badge variant="outline" className="bg-primary/10">
-                        Week {week}
-                      </Badge>
-                      <div className="h-px bg-border flex-1"></div>
-                    </div>
-                    <div className="grid md:grid-cols-7 gap-2 ml-6">
-                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
-                        <div key={day} className="p-2 border border-border/30 rounded text-center text-sm">
-                          <div className="text-muted-foreground mb-1">{day}</div>
-                          {Math.random() > 0.7 && (
-                            <div className="w-2 h-2 bg-pastel-blue rounded-full mx-auto"></div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Create Content Form */}
-        {showCreateForm && (
-          <Card className="card-pastel">
-            <CardHeader>
-              <CardTitle>Add New Content Plan</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Content Title</label>
-                <Input 
-                  value={newContent.title}
-                  onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enter content title"
-                  className="mt-1"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium">Content Type</label>
-                  <Select value={newContent.type} onValueChange={(value) => setNewContent(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select type" />
+                  <Label htmlFor="title">Content Title</Label>
+                  <Input
+                    id="title"
+                    value={newContent.title}
+                    onChange={(e) => setNewContent({...newContent, title: e.target.value})}
+                    placeholder="Enter content title"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="type">Content Type</Label>
+                  <Select value={newContent.type} onValueChange={(value: ContentPlan['type']) => setNewContent({...newContent, type: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="video">Video</SelectItem>
-                      <SelectItem value="photo">Photo</SelectItem>
-                      <SelectItem value="article">Article</SelectItem>
-                      <SelectItem value="social">Social Media</SelectItem>
+                      {contentTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <Label htmlFor="shootDate">Shoot Date</Label>
+                    <Input
+                      id="shootDate"
+                      type="date"
+                      value={newContent.shootDate}
+                      onChange={(e) => setNewContent({...newContent, shootDate: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="editDate">Edit Date</Label>
+                    <Input
+                      id="editDate"
+                      type="date"
+                      value={newContent.editDate}
+                      onChange={(e) => setNewContent({...newContent, editDate: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="postDate">Post Date</Label>
+                    <Input
+                      id="postDate"
+                      type="date"
+                      value={newContent.postDate}
+                      onChange={(e) => setNewContent({...newContent, postDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
                 <div>
-                  <label className="text-sm font-medium">Team Member</label>
-                  <Select value={newContent.teamMember} onValueChange={(value) => setNewContent(prev => ({ ...prev, teamMember: value }))}>
-                    <SelectTrigger className="mt-1">
+                  <Label htmlFor="teamMember">Team Member</Label>
+                  <Select value={newContent.teamMember} onValueChange={(value) => setNewContent({...newContent, teamMember: value})}>
+                    <SelectTrigger>
                       <SelectValue placeholder="Select team member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {teamMembers.map(member => (
+                      {teamMembers.map((member) => (
                         <SelectItem key={member} value={member}>{member}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Textarea 
-                  value={newContent.description}
-                  onChange={(e) => setNewContent(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Content description and requirements"
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
-              {/* Schedule Dates */}
-              <div className="grid grid-cols-3 gap-3">
+                
                 <div>
-                  <label className="text-sm font-medium">Shoot Date</label>
-                  <Input
-                    type="date"
-                    value={newContent.shootDate}
-                    onChange={(e) => setNewContent(prev => ({ ...prev, shootDate: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Edit Date</label>
-                  <Input
-                    type="date"
-                    value={newContent.editDate}
-                    onChange={(e) => setNewContent(prev => ({ ...prev, editDate: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Post Date</label>
-                  <Input
-                    type="date"
-                    value={newContent.postDate}
-                    onChange={(e) => setNewContent(prev => ({ ...prev, postDate: e.target.value }))}
-                    className="mt-1"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Project Document</label>
-                <div className="mt-1 border-2 border-dashed border-border/50 rounded-lg p-4 text-center hover:border-border transition-colors">
-                  <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Upload project brief, script, or storyboard
-                  </p>
+                  <Label htmlFor="document">Project Document *</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Input
+                      id="document"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="flex-1"
+                    />
+                    <Upload className="w-4 h-4 text-muted-foreground" />
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    PDF, DOC, or TXT files only
+                    Upload project brief, script, or storyboard (Required)
                   </p>
                 </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
+                
                 <Button 
-                  variant="outline" 
-                  className="flex-1"
-                  onClick={() => setShowCreateForm(false)}
+                  onClick={createContentPlan} 
+                  className="w-full"
+                  disabled={!newContent.title || !newContent.shootDate || !selectedFile}
                 >
-                  Cancel
-                </Button>
-                <Button className="flex-1 btn-pastel" onClick={handleCreateContent}>
                   Create Content Plan
                 </Button>
               </div>
-            </CardContent>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Content Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Video className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Content</p>
+                <p className="text-2xl font-bold text-foreground">{contentPlans.length}</p>
+              </div>
+            </div>
           </Card>
-        )}
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">In Production</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {contentPlans.filter(p => ['shoot', 'edit'].includes(p.status)).length}
+                </p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Share2 className="w-8 h-8 text-primary" />
+              <div>
+                <p className="text-sm text-muted-foreground">Ready to Post</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {contentPlans.filter(p => p.status === 'post').length}
+                </p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <Badge className="w-8 h-8 flex items-center justify-center bg-academic-instruction">✓</Badge>
+              <div>
+                <p className="text-sm text-muted-foreground">Completed</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {contentPlans.filter(p => p.status === 'completed').length}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Content Calendar */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Content Calendar</h2>
+          <div className="grid grid-cols-7 gap-1 text-center text-sm">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="p-2 font-medium text-muted-foreground">
+                {day}
+              </div>
+            ))}
+            {Array.from({ length: 35 }, (_, i) => (
+              <div key={i} className="aspect-square border border-border rounded p-1 text-xs">
+                <div className="text-foreground">{((i % 31) + 1)}</div>
+                {i === 10 && <div className="bg-primary/20 text-primary text-[10px] rounded p-0.5 mt-1">Video Shoot</div>}
+                {i === 15 && <div className="bg-academic-instruction/20 text-foreground text-[10px] rounded p-0.5 mt-1">Edit</div>}
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Studio Dashboard */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Studio Dashboard</h2>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Content Title</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Team Member</TableHead>
+                <TableHead>Shoot Date</TableHead>
+                <TableHead>Edit Date</TableHead>
+                <TableHead>Post Date</TableHead>
+                <TableHead>Document</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {contentPlans.map((plan) => (
+                <TableRow key={plan.id}>
+                  <TableCell className="font-medium">{plan.title}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getTypeIcon(plan.type)}
+                      {plan.type.charAt(0).toUpperCase() + plan.type.slice(1)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(plan.status)}>
+                      {plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{plan.teamMember}</TableCell>
+                  <TableCell>{new Date(plan.shootDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{plan.editDate ? new Date(plan.editDate).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>{plan.postDate ? new Date(plan.postDate).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>
+                    {plan.projectDocument ? (
+                      <Badge variant="outline" className="text-xs">
+                        {plan.projectDocument}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No document</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+
+        {/* Timeline View */}
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Monthly Timeline</h2>
+          <div className="space-y-3">
+            {upcomingContent.slice(0, 5).map((plan) => (
+              <div key={plan.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {getTypeIcon(plan.type)}
+                  <div>
+                    <h3 className="font-medium text-foreground">{plan.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Shoot: {new Date(plan.shootDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={getStatusColor(plan.status)}>
+                    {plan.status}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">{plan.teamMember}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </Layout>
   );
