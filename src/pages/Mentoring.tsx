@@ -140,7 +140,7 @@ export default function Mentoring() {
       </div>
 
       {/* Filters */}
-      <Card className="p-6">
+      <Card className="p-6 card-soft">
         <h2 className="text-xl font-semibold mb-4 text-foreground">Program Configuration</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -222,7 +222,7 @@ export default function Mentoring() {
           
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <Badge className="w-8 h-8 flex items-center justify-center bg-academic-holidays">H</Badge>
+              <Badge className="w-8 h-8 flex items-center justify-center bg-pastel-yellow">H</Badge>
               <div>
                 <p className="text-sm text-muted-foreground">Holiday Weeks</p>
                 <p className="text-2xl font-bold text-foreground">{mentoringWeeks.length - workingWeeks.length} weeks</p>
@@ -234,7 +234,7 @@ export default function Mentoring() {
 
       {/* Weekly Planner */}
       {mentoringWeeks.length > 0 && (
-        <Card className="p-6">
+        <Card className="p-6 card-soft">
           <h2 className="text-xl font-semibold mb-4 text-foreground">8-Week Mentoring Plan</h2>
           <div className="space-y-4">
             {mentoringWeeks.map((week) => (
@@ -248,7 +248,7 @@ export default function Mentoring() {
                       {new Date(week.startDate).toLocaleDateString()} - {new Date(week.endDate).toLocaleDateString()}
                     </span>
                     {week.isHoliday && (
-                      <Badge variant="outline" className="bg-academic-holidays text-foreground">
+                      <Badge variant="outline" className="bg-pastel-yellow text-foreground">
                         Holiday Week
                       </Badge>
                     )}

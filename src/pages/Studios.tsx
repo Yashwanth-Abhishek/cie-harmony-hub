@@ -91,15 +91,15 @@ export default function CIEStudios() {
   const getStatusColor = (status: ContentPlan['status']) => {
     switch (status) {
       case 'planning':
-        return 'bg-academic-holidays';
+        return 'bg-pastel-yellow';
       case 'shoot':
         return 'bg-primary';
       case 'edit':
-        return 'bg-academic-instruction';
-      case 'post':
         return 'bg-pastel-blue';
+      case 'post':
+        return 'bg-pastel-green';
       case 'completed':
-        return 'bg-academic-instruction';
+        return 'bg-pastel-lavender';
       default:
         return 'bg-muted';
     }
@@ -282,9 +282,9 @@ export default function CIEStudios() {
             </div>
           </Card>
           
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <Badge className="w-8 h-8 flex items-center justify-center bg-academic-instruction">✓</Badge>
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <Badge className="w-8 h-8 flex items-center justify-center bg-pastel-lavender">✓</Badge>
               <div>
                 <p className="text-sm text-muted-foreground">Completed</p>
                 <p className="text-2xl font-bold text-foreground">
@@ -295,9 +295,9 @@ export default function CIEStudios() {
           </Card>
         </div>
 
-        {/* Content Calendar */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Content Calendar</h2>
+      {/* Content Calendar */}
+      <Card className="p-6 card-soft">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Content Calendar</h2>
           <div className="grid grid-cols-7 gap-1 text-center text-sm">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div key={day} className="p-2 font-medium text-muted-foreground">
@@ -314,9 +314,9 @@ export default function CIEStudios() {
           </div>
         </Card>
 
-        {/* Studio Dashboard */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Studio Dashboard</h2>
+      {/* Studio Dashboard */}
+      <Card className="p-6 card-soft">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Studio Dashboard</h2>
           <Table>
             <TableHeader>
               <TableRow>
@@ -364,9 +364,9 @@ export default function CIEStudios() {
           </Table>
         </Card>
 
-        {/* Timeline View */}
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">Monthly Timeline</h2>
+      {/* Timeline View */}
+      <Card className="p-6 card-soft">
+        <h2 className="text-xl font-semibold mb-4 text-foreground">Monthly Timeline</h2>
           <div className="space-y-3">
             {upcomingContent.slice(0, 5).map((plan) => (
               <div key={plan.id} className="flex items-center justify-between p-3 border border-border rounded-lg">
