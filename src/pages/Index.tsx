@@ -32,15 +32,7 @@ const Index = () => {
     // Here you could show event details or navigate to event planning
   };
 
-  // Convert database events to calendar format
-  const calendarEvents = events.map(event => ({
-    id: event.id.toString(),
-    title: event.title,
-    date: event.event_date,
-    type: "event" as const,
-    color: getEventColor(event.event_type),
-  }));
-
+  // Helper function to get event colors based on type
   const getEventColor = (eventType: string) => {
     switch (eventType) {
       case 'academic': return '#3b82f6';
@@ -51,6 +43,15 @@ const Index = () => {
       default: return '#6b7280';
     }
   };
+
+  // Convert database events to calendar format
+  const calendarEvents = events.map(event => ({
+    id: event.id.toString(),
+    title: event.title,
+    date: event.event_date,
+    type: "event" as const,
+    color: getEventColor(event.event_type),
+  }));
 
   return (
     <Layout currentPage="home">
