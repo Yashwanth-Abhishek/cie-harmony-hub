@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      cohort_projects: {
+        Row: {
+          active_days: string[] | null
+          created_at: string
+          end_date: string
+          id: string
+          participants: number | null
+          progress: number | null
+          project_name: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          active_days?: string[] | null
+          created_at?: string
+          end_date: string
+          id?: string
+          participants?: number | null
+          progress?: number | null
+          project_name: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          active_days?: string[] | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          participants?: number | null
+          progress?: number | null
+          project_name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_plans: {
         Row: {
           created_at: string

@@ -6,8 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Users, Calendar, CheckCircle, Upload, FileText, Clock } from "lucide-react";
+// SUPABASE CONNECTION: Import Supabase client for database operations
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+
+// Define the cohort project interface to match our database structure
+interface CohortProject {
+  id: string;
+  project_name: string;
+  start_date: string;
+  end_date: string;
+  active_days: string[];
+  participants: number;
+  status: string;
+  progress: number;
+  created_at: string;
+  updated_at: string;
+}
 
 interface CohortData {
   projectName: string;
@@ -75,9 +90,9 @@ const existingCohorts = [
 
 export default function Cohorts() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedCohort, setSelectedCohort] = useState<Tables<'cohort_projects'> | null>(null);
+  const [selectedCohort, setSelectedCohort] = useState<CohortProject | null>(null);
   const [showTaskPlanner, setShowTaskPlanner] = useState(false);
-  const [cohorts, setCohorts] = useState<Tables<'cohort_projects'>[]>([]);
+  const [cohorts, setCohorts] = useState<CohortProject[]>([]);
   const [cohortPlans, setCohortPlans] = useState<CohortPlan[]>([]);
   const [newTask, setNewTask] = useState({ name: "", deadline: "" });
   const [cohortForm, setCohortForm] = useState<CohortData>({
@@ -91,12 +106,14 @@ export default function Cohorts() {
     fetchCohorts();
   }, []);
 
+  // DATA FETCHING: Function to fetch cohorts from Supabase database
+  // You can edit the query here to modify what data is retrieved
   const fetchCohorts = async () => {
     try {
       const { data, error } = await supabase
-        .from('cohort_projects')
-        .select('*')
-        .order('start_date', { ascending: false });
+        .from('cohort_projects') // Edit table name here if needed
+        .select('*') // Edit columns to select here
+        .order('start_date', { ascending: false }); // Edit sorting here
 
       if (error) throw error;
       setCohorts(data || []);
@@ -220,7 +237,7 @@ export default function Cohorts() {
                           </div>
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            0 participants
+                            {cohort.participants} participants
                           </div>
                         </div>
                       </div>
@@ -237,9 +254,17 @@ export default function Cohorts() {
                     <div className="space-y-2">
                       <div className="text-sm font-medium">Active Days:</div>
                       <div className="flex flex-wrap gap-1">
-                        <Badge variant="outline" className="bg-pastel-blue/20 text-xs">
-                          Mon-Fri
-                        </Badge>
+                        {cohort.active_days && cohort.active_days.length > 0 ? (
+                          cohort.active_days.map(day => (
+                            <Badge key={day} variant="outline" className="bg-pastel-blue/20 text-xs capitalize">
+                              {day.slice(0, 3)}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Badge variant="outline" className="bg-pastel-blue/20 text-xs">
+                            Not set
+                          </Badge>
+                        )}
                       </div>
                     </div>
 
