@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,85 +10,92 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Video, Edit, Share2, Upload, Calendar, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+// SUPABASE CONNECTION: Import the Supabase client for database operations
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
-interface ContentPlan {
-  id: string;
-  title: string;
-  type: 'video' | 'podcast' | 'blog' | 'social';
-  status: 'planning' | 'shoot' | 'edit' | 'post' | 'completed';
-  shootDate: string;
-  editDate: string;
-  postDate: string;
-  teamMember: string;
-  projectDocument?: string;
-}
+// SUPABASE TYPES: Use database types directly
+type ContentPlan = Tables<'content_plans'>;
 
 const contentTypes = ['video', 'podcast', 'blog', 'social'];
 const statusTypes = ['planning', 'shoot', 'edit', 'post', 'completed'];
 const teamMembers = ['Alice Johnson', 'Bob Smith', 'Carol Davis'];
 
 export default function CIEStudios() {
-  const [contentPlans, setContentPlans] = useState<ContentPlan[]>([
-    {
-      id: '1',
-      title: 'Innovation in Tech Startups',
-      type: 'video',
-      status: 'edit',
-      shootDate: '2024-08-20',
-      editDate: '2024-08-25',
-      postDate: '2024-09-01',
-      teamMember: 'Alice Johnson',
-      projectDocument: 'tech-startups-brief.pdf'
-    },
-    {
-      id: '2',
-      title: 'Entrepreneurship Podcast Episode 5',
-      type: 'podcast',
-      status: 'planning',
-      shootDate: '2024-09-10',
-      editDate: '2024-09-12',
-      postDate: '2024-09-15',
-      teamMember: 'Bob Smith'
+  // SUPABASE DATA: Store content plans from database
+  const [contentPlans, setContentPlans] = useState<Tables<'content_plans'>[]>([]);
+
+  // DATA FETCHING: Function to load content plans from Supabase
+  // Edit this function to modify how data is fetched
+  const fetchContentPlans = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('content_plans')
+        .select('*')
+        .order('shoot_date', { ascending: true });
+
+      if (error) throw error;
+      setContentPlans(data || []);
+    } catch (error) {
+      console.error('Error fetching content plans:', error);
     }
-  ]);
+  };
+
+  // COMPONENT INITIALIZATION: Fetch data on component mount
+  useEffect(() => {
+    fetchContentPlans();
+  }, []);
 
   const [newContent, setNewContent] = useState({
     title: '',
-    type: 'video' as ContentPlan['type'],
-    shootDate: '',
-    editDate: '',
-    postDate: '',
-    teamMember: '',
-    projectDocument: ''
+    type: 'video',
+    shoot_date: '',
+    edit_date: '',
+    post_date: '',
+    team_member: '',
+    project_document: ''
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const createContentPlan = () => {
-    if (newContent.title && newContent.shootDate && selectedFile) {
-      const plan: ContentPlan = {
-        id: Date.now().toString(),
-        ...newContent,
-        status: 'planning',
-        projectDocument: selectedFile.name
-      };
-      setContentPlans([...contentPlans, plan]);
-      setNewContent({
-        title: '',
-        type: 'video',
-        shootDate: '',
-        editDate: '',
-        postDate: '',
-        teamMember: '',
-        projectDocument: ''
-      });
-      setSelectedFile(null);
-      setIsDialogOpen(false);
+  // CREATE CONTENT: Function to add new content to Supabase
+  // Edit this function to modify how new content is created
+  const createContentPlan = async () => {
+    if (newContent.title && newContent.shoot_date && selectedFile) {
+      try {
+        const { data, error } = await supabase
+          .from('content_plans')
+          .insert([{
+            ...newContent,
+            status: 'planning',
+            project_document: selectedFile.name
+          }])
+          .select();
+
+        if (error) throw error;
+        
+        // Refresh the data
+        fetchContentPlans();
+        
+        setNewContent({
+          title: '',
+          type: 'video',
+          shoot_date: '',
+          edit_date: '',
+          post_date: '',
+          team_member: '',
+          project_document: ''
+        });
+        setSelectedFile(null);
+        setIsDialogOpen(false);
+      } catch (error) {
+        console.error('Error creating content plan:', error);
+      }
     }
   };
 
-  const getStatusColor = (status: ContentPlan['status']) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'planning':
         return 'bg-pastel-yellow';
@@ -105,7 +112,7 @@ export default function CIEStudios() {
     }
   };
 
-  const getTypeIcon = (type: ContentPlan['type']) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
       case 'video':
         return <Video className="w-4 h-4" />;
@@ -121,8 +128,8 @@ export default function CIEStudios() {
   };
 
   const upcomingContent = contentPlans
-    .filter(plan => new Date(plan.shootDate) >= new Date())
-    .sort((a, b) => new Date(a.shootDate).getTime() - new Date(b.shootDate).getTime());
+    .filter(plan => new Date(plan.shoot_date) >= new Date())
+    .sort((a, b) => new Date(a.shoot_date).getTime() - new Date(b.shoot_date).getTime());
 
   return (
     <Layout currentPage="studios">
@@ -157,7 +164,7 @@ export default function CIEStudios() {
                 
                 <div>
                   <Label htmlFor="type">Content Type</Label>
-                  <Select value={newContent.type} onValueChange={(value: ContentPlan['type']) => setNewContent({...newContent, type: value})}>
+                  <Select value={newContent.type} onValueChange={(value) => setNewContent({...newContent, type: value})}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -177,8 +184,8 @@ export default function CIEStudios() {
                     <Input
                       id="shootDate"
                       type="date"
-                      value={newContent.shootDate}
-                      onChange={(e) => setNewContent({...newContent, shootDate: e.target.value})}
+                      value={newContent.shoot_date}
+                      onChange={(e) => setNewContent({...newContent, shoot_date: e.target.value})}
                     />
                   </div>
                   
@@ -187,8 +194,8 @@ export default function CIEStudios() {
                     <Input
                       id="editDate"
                       type="date"
-                      value={newContent.editDate}
-                      onChange={(e) => setNewContent({...newContent, editDate: e.target.value})}
+                      value={newContent.edit_date}
+                      onChange={(e) => setNewContent({...newContent, edit_date: e.target.value})}
                     />
                   </div>
                   
@@ -197,15 +204,15 @@ export default function CIEStudios() {
                     <Input
                       id="postDate"
                       type="date"
-                      value={newContent.postDate}
-                      onChange={(e) => setNewContent({...newContent, postDate: e.target.value})}
+                      value={newContent.post_date}
+                      onChange={(e) => setNewContent({...newContent, post_date: e.target.value})}
                     />
                   </div>
                 </div>
                 
                 <div>
                   <Label htmlFor="teamMember">Team Member</Label>
-                  <Select value={newContent.teamMember} onValueChange={(value) => setNewContent({...newContent, teamMember: value})}>
+                  <Select value={newContent.team_member} onValueChange={(value) => setNewContent({...newContent, team_member: value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select team member" />
                     </SelectTrigger>
@@ -237,7 +244,7 @@ export default function CIEStudios() {
                 <Button 
                   onClick={createContentPlan} 
                   className="w-full"
-                  disabled={!newContent.title || !newContent.shootDate || !selectedFile}
+                  disabled={!newContent.title || !newContent.shoot_date || !selectedFile}
                 >
                   Create Content Plan
                 </Button>
@@ -345,14 +352,14 @@ export default function CIEStudios() {
                       {plan.status.charAt(0).toUpperCase() + plan.status.slice(1)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{plan.teamMember}</TableCell>
-                  <TableCell>{new Date(plan.shootDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{plan.editDate ? new Date(plan.editDate).toLocaleDateString() : '-'}</TableCell>
-                  <TableCell>{plan.postDate ? new Date(plan.postDate).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>{plan.team_member}</TableCell>
+                  <TableCell>{new Date(plan.shoot_date).toLocaleDateString()}</TableCell>
+                  <TableCell>{plan.edit_date ? new Date(plan.edit_date).toLocaleDateString() : '-'}</TableCell>
+                  <TableCell>{plan.post_date ? new Date(plan.post_date).toLocaleDateString() : '-'}</TableCell>
                   <TableCell>
-                    {plan.projectDocument ? (
+                    {plan.project_document ? (
                       <Badge variant="outline" className="text-xs">
-                        {plan.projectDocument}
+                        {plan.project_document}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-sm">No document</span>
@@ -375,7 +382,7 @@ export default function CIEStudios() {
                   <div>
                     <h3 className="font-medium text-foreground">{plan.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Shoot: {new Date(plan.shootDate).toLocaleDateString()}
+                      Shoot: {new Date(plan.shoot_date).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -383,7 +390,7 @@ export default function CIEStudios() {
                   <Badge className={getStatusColor(plan.status)}>
                     {plan.status}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">{plan.teamMember}</span>
+                  <span className="text-sm text-muted-foreground">{plan.team_member}</span>
                 </div>
               </div>
             ))}

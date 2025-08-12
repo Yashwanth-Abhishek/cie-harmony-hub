@@ -14,165 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      cohort_projects: {
+      content_plans: {
         Row: {
-          created_at: string | null
-          end_date: string
+          created_at: string
+          edit_date: string | null
           id: string
-          progress: number | null
-          project_name: string
-          section: string
-          start_date: string
-          status: string | null
-          updated_at: string | null
-          year: number
+          post_date: string | null
+          project_document: string | null
+          shoot_date: string
+          status: string
+          team_member: string | null
+          title: string
+          type: string
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          end_date: string
+          created_at?: string
+          edit_date?: string | null
           id?: string
-          progress?: number | null
-          project_name: string
-          section: string
-          start_date: string
-          status?: string | null
-          updated_at?: string | null
-          year: number
+          post_date?: string | null
+          project_document?: string | null
+          shoot_date: string
+          status?: string
+          team_member?: string | null
+          title: string
+          type?: string
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          end_date?: string
+          created_at?: string
+          edit_date?: string | null
           id?: string
-          progress?: number | null
-          project_name?: string
-          section?: string
-          start_date?: string
-          status?: string | null
-          updated_at?: string | null
-          year?: number
+          post_date?: string | null
+          project_document?: string | null
+          shoot_date?: string
+          status?: string
+          team_member?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
       events: {
         Row: {
-          conflicts: string[] | null
-          created_at: string | null
+          created_at: string
           description: string | null
           event_date: string
           event_type: string
-          id: number
-          is_irrevocable: boolean | null
-          section: string | null
+          id: string
           title: string
-          updated_at: string | null
-          working_days_to_event: number | null
-          year: number | null
+          updated_at: string
+          venue: string | null
         }
         Insert: {
-          conflicts?: string[] | null
-          created_at?: string | null
+          created_at?: string
           description?: string | null
           event_date: string
-          event_type: string
-          id?: number
-          is_irrevocable?: boolean | null
-          section?: string | null
+          event_type?: string
+          id?: string
           title: string
-          updated_at?: string | null
-          working_days_to_event?: number | null
-          year?: number | null
+          updated_at?: string
+          venue?: string | null
         }
         Update: {
-          conflicts?: string[] | null
-          created_at?: string | null
+          created_at?: string
           description?: string | null
           event_date?: string
           event_type?: string
-          id?: number
-          is_irrevocable?: boolean | null
-          section?: string | null
+          id?: string
           title?: string
-          updated_at?: string | null
-          working_days_to_event?: number | null
-          year?: number | null
+          updated_at?: string
+          venue?: string | null
         }
         Relationships: []
       }
       mentoring_sessions: {
         Row: {
-          agenda: string | null
-          attendance: number | null
-          created_at: string | null
+          created_at: string
+          end_date: string
           id: string
-          mentor_name: string
-          notes: string | null
-          section: string
-          session_date: string
-          updated_at: string | null
-          year: number
+          is_holiday: boolean | null
+          mentor: string | null
+          start_date: string
+          title: string
+          topic: string | null
+          updated_at: string
+          week_number: number
         }
         Insert: {
-          agenda?: string | null
-          attendance?: number | null
-          created_at?: string | null
+          created_at?: string
+          end_date: string
           id?: string
-          mentor_name: string
-          notes?: string | null
-          section: string
-          session_date: string
-          updated_at?: string | null
-          year: number
+          is_holiday?: boolean | null
+          mentor?: string | null
+          start_date: string
+          title: string
+          topic?: string | null
+          updated_at?: string
+          week_number: number
         }
         Update: {
-          agenda?: string | null
-          attendance?: number | null
-          created_at?: string | null
+          created_at?: string
+          end_date?: string
           id?: string
-          mentor_name?: string
-          notes?: string | null
-          section?: string
-          session_date?: string
-          updated_at?: string | null
-          year?: number
-        }
-        Relationships: []
-      }
-      studio_content: {
-        Row: {
-          content_type: string
-          created_at: string | null
-          edit_date: string | null
-          id: string
-          post_date: string | null
-          shoot_date: string | null
-          status: string | null
-          team_members: string[] | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          content_type: string
-          created_at?: string | null
-          edit_date?: string | null
-          id?: string
-          post_date?: string | null
-          shoot_date?: string | null
-          status?: string | null
-          team_members?: string[] | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          content_type?: string
-          created_at?: string | null
-          edit_date?: string | null
-          id?: string
-          post_date?: string | null
-          shoot_date?: string | null
-          status?: string | null
-          team_members?: string[] | null
+          is_holiday?: boolean | null
+          mentor?: string | null
+          start_date?: string
           title?: string
-          updated_at?: string | null
+          topic?: string | null
+          updated_at?: string
+          week_number?: number
         }
         Relationships: []
       }
