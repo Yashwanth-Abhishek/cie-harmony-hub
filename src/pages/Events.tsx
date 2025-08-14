@@ -66,12 +66,30 @@ export default function Events() {
 
   const calculateWorkingDays = (targetDate: Date) => {
     const today = new Date();
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(targetDate);
+    target.setHours(0, 0, 0, 0);
     
-    // Simple calculation - exclude weekends
-    const workingDays = Math.floor(diffDays * 5/7);
-    return Math.max(0, workingDays);
+    let workingDays = 0;
+    const current = new Date(today);
+    current.setDate(current.getDate() + 1); // Start counting from tomorrow
+    
+    while (current <= target) {
+      const day = current.getDay();
+      const dateStr = current.toISOString().split('T')[0];
+      
+      // Skip only Sundays (0) and holidays
+      const isHoliday = dateStr === "2024-01-26" || dateStr === "2024-08-15" || 
+                       dateStr === "2024-03-25" || dateStr === "2024-10-02";
+      
+      if (day !== 0 && !isHoliday) {
+        workingDays++;
+      }
+      
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return workingDays;
   };
 
   const checkConflicts = (date: Date) => {
@@ -110,9 +128,8 @@ export default function Events() {
             title: eventForm.title,
             event_date: eventForm.date,
             description: eventForm.description,
-            event_type: 'academic',
-            section: 'general',
-            year: new Date().getFullYear()
+            venue: eventForm.venue,
+            event_type: 'event'
           });
 
         if (error) throw error;
@@ -121,20 +138,32 @@ export default function Events() {
         await fetchEvents();
         setEventForm({ title: "", date: "", description: "", venue: "" });
         setShowCreateForm(false);
+        setSelectedDate(null);
       } catch (error) {
         console.error('Error creating event:', error);
       }
     }
   };
 
-  // Convert database events to calendar format
-  const allEvents = events.map(event => ({
-    id: event.id.toString(),
-    title: event.title,
-    date: event.event_date,
-    type: "event" as const,
-    description: event.description
-  }));
+  // Sample holidays
+  const holidays = [
+    { id: "h1", title: "Republic Day", date: "2024-01-26", type: "holiday" as const },
+    { id: "h2", title: "Independence Day", date: "2024-08-15", type: "holiday" as const },
+    { id: "h3", title: "Holi", date: "2024-03-25", type: "holiday" as const },
+    { id: "h4", title: "Gandhi Jayanti", date: "2024-10-02", type: "holiday" as const }
+  ];
+
+  // Convert database events to calendar format and combine with holidays
+  const calendarEvents = [
+    ...events.map(event => ({
+      id: event.id.toString(),
+      title: event.title,
+      date: event.event_date,
+      type: "event" as const,
+      description: event.description
+    })),
+    ...holidays
+  ];
 
   return (
     <Layout currentPage="events">
@@ -156,7 +185,7 @@ export default function Events() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Calendar */}
           <div className="lg:col-span-2">
-            <Calendar events={allEvents} onDateClick={handleDateClick} />
+            <Calendar events={calendarEvents} onDateClick={handleDateClick} />
           </div>
 
           {/* Event Planning Panel */}
