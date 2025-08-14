@@ -4,30 +4,32 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Clock, Calendar } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Download, Clock, Calendar, Edit, Trash2, Save, UserPlus } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface MentoringWeek {
   weekNumber: number;
   startDate: string;
   endDate: string;
-  tasks: { id: string; text: string; completed: boolean }[];
+  assignedMentor: string;
+  substituteMentor?: string;
   isHoliday: boolean;
 }
 
-interface MentoringTask {
+interface SubstituteMentor {
   id: string;
-  text: string;
-  completed: boolean;
+  name: string;
+  weekNumber: number;
 }
 
 const branches = ["Computer Science", "Electronics", "Mechanical", "Civil"];
 const sections = ["A", "B", "C", "D"];
-const timeSlots = ["Morning (10:10 AM - 11:50 AM)", "Afternoon (2:20 PM - 4:00 PM)"];
 
-const generateMentoringWeeks = (startDate: Date): MentoringWeek[] => {
+const defaultMentors = ["Dr. Smith", "Prof. Johnson", "Dr. Williams", "Prof. Brown"];
+
+const generateMentoringWeeks = (): MentoringWeek[] => {
   const weeks: MentoringWeek[] = [];
-  const currentDate = new Date(startDate);
+  const currentDate = new Date();
   
   for (let i = 0; i < 8; i++) {
     const weekStart = new Date(currentDate);
@@ -38,11 +40,7 @@ const generateMentoringWeeks = (startDate: Date): MentoringWeek[] => {
       weekNumber: i + 1,
       startDate: weekStart.toISOString().split('T')[0],
       endDate: weekEnd.toISOString().split('T')[0],
-      tasks: [
-        { id: `${i + 1}-1`, text: `Week ${i + 1} - Orientation and Goal Setting`, completed: false },
-        { id: `${i + 1}-2`, text: "Industry insights discussion", completed: false },
-        { id: `${i + 1}-3`, text: "Project planning and roadmap", completed: false }
-      ],
+      assignedMentor: defaultMentors[i % defaultMentors.length],
       isHoliday: i === 3 // Sample holiday week
     });
     
@@ -55,51 +53,44 @@ const generateMentoringWeeks = (startDate: Date): MentoringWeek[] => {
 export default function Mentoring() {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [startDate, setStartDate] = useState("");
   const [mentoringWeeks, setMentoringWeeks] = useState<MentoringWeek[]>([]);
-  const [newTaskText, setNewTaskText] = useState("");
-  const [editingWeek, setEditingWeek] = useState<number | null>(null);
+  const [editingSubstitute, setEditingSubstitute] = useState<number | null>(null);
+  const [substituteInput, setSubstituteInput] = useState("");
   
-  // Generate weeks when startDate changes
+  // Generate weeks when branch and section are selected
   useEffect(() => {
-    if (startDate) {
-      setMentoringWeeks(generateMentoringWeeks(new Date(startDate)));
+    if (selectedBranch && selectedSection) {
+      setMentoringWeeks(generateMentoringWeeks());
     }
-  }, [startDate]);
+  }, [selectedBranch, selectedSection]);
 
+  const totalWeeks = mentoringWeeks.length;
   const workingWeeks = mentoringWeeks.filter(week => !week.isHoliday);
+  const holidayWeeks = totalWeeks - workingWeeks.length;
 
-  const addTask = (weekNumber: number) => {
-    if (newTaskText.trim()) {
+  const addSubstitute = (weekNumber: number) => {
+    if (substituteInput.trim()) {
       setMentoringWeeks(prev => prev.map(week => 
         week.weekNumber === weekNumber 
-          ? {
-              ...week,
-              tasks: [...week.tasks, {
-                id: Date.now().toString(),
-                text: newTaskText,
-                completed: false
-              }]
-            }
+          ? { ...week, substituteMentor: substituteInput.trim() }
           : week
       ));
-      setNewTaskText("");
-      setEditingWeek(null);
+      setSubstituteInput("");
+      setEditingSubstitute(null);
     }
   };
 
-  const toggleTask = (weekNumber: number, taskId: string) => {
+  const removeSubstitute = (weekNumber: number) => {
     setMentoringWeeks(prev => prev.map(week => 
       week.weekNumber === weekNumber 
-        ? {
-            ...week,
-            tasks: week.tasks.map(task => 
-              task.id === taskId ? { ...task, completed: !task.completed } : task
-            )
-          }
+        ? { ...week, substituteMentor: undefined }
         : week
     ));
+  };
+
+  const startEditingSubstitute = (weekNumber: number, currentSubstitute?: string) => {
+    setEditingSubstitute(weekNumber);
+    setSubstituteInput(currentSubstitute || "");
   };
 
   const downloadCalendar = () => {
@@ -107,8 +98,10 @@ export default function Mentoring() {
     const calendarData = {
       branch: selectedBranch,
       section: selectedSection,
-      timeSlot: selectedTimeSlot,
-      weeks: mentoringWeeks
+      weeks: mentoringWeeks,
+      totalWeeks,
+      workingWeeks: workingWeeks.length,
+      holidayWeeks
     };
     
     const blob = new Blob([JSON.stringify(calendarData, null, 2)], { 
@@ -117,7 +110,7 @@ export default function Mentoring() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `mentoring-calendar-${selectedBranch}-${selectedSection}.json`;
+    a.download = `mentoring-program-${selectedBranch}-${selectedSection}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -134,7 +127,7 @@ export default function Mentoring() {
         {mentoringWeeks.length > 0 && (
           <Button onClick={downloadCalendar} className="gap-2">
             <Download className="w-4 h-4" />
-            Download Calendar
+            Download Program
           </Button>
         )}
       </div>
@@ -142,7 +135,7 @@ export default function Mentoring() {
       {/* Filters */}
       <Card className="p-6 card-soft">
         <h2 className="text-xl font-semibold mb-4 text-foreground">Program Configuration</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-foreground mb-2 block">Branch</label>
             <Select value={selectedBranch} onValueChange={setSelectedBranch}>
@@ -170,42 +163,18 @@ export default function Mentoring() {
               </SelectContent>
             </Select>
           </div>
-          
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Time Slot</label>
-            <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Time" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeSlots.map((slot) => (
-                  <SelectItem key={slot} value={slot}>{slot}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Start Date</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
-            />
-          </div>
         </div>
       </Card>
 
       {/* Program Overview */}
-      {mentoringWeeks.length > 0 && (
+      {selectedBranch && selectedSection && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-4">
             <div className="flex items-center gap-3">
               <Calendar className="w-8 h-8 text-primary" />
               <div>
                 <p className="text-sm text-muted-foreground">Total Weeks</p>
-                <p className="text-2xl font-bold text-foreground">8 weeks</p>
+                <p className="text-2xl font-bold text-foreground">{totalWeeks} weeks</p>
               </div>
             </div>
           </Card>
@@ -225,17 +194,17 @@ export default function Mentoring() {
               <Badge className="w-8 h-8 flex items-center justify-center bg-pastel-yellow">H</Badge>
               <div>
                 <p className="text-sm text-muted-foreground">Holiday Weeks</p>
-                <p className="text-2xl font-bold text-foreground">{mentoringWeeks.length - workingWeeks.length} weeks</p>
+                <p className="text-2xl font-bold text-foreground">{holidayWeeks} weeks</p>
               </div>
             </div>
           </Card>
         </div>
       )}
 
-      {/* Weekly Planner */}
+      {/* Weekly Mentor Assignment */}
       {mentoringWeeks.length > 0 && (
         <Card className="p-6 card-soft">
-          <h2 className="text-xl font-semibold mb-4 text-foreground">8-Week Mentoring Plan</h2>
+          <h2 className="text-xl font-semibold mb-4 text-foreground">8-Week Mentor Assignment Plan</h2>
           <div className="space-y-4">
             {mentoringWeeks.map((week) => (
               <div key={week.weekNumber} className={`border rounded-lg p-4 ${week.isHoliday ? 'bg-academic-holidays/20' : 'bg-background'}`}>
@@ -255,41 +224,66 @@ export default function Mentoring() {
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  {week.tasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-2">
-                      <Checkbox 
-                        id={`week-${week.weekNumber}-task-${task.id}`}
-                        checked={task.completed}
-                        onCheckedChange={() => toggleTask(week.weekNumber, task.id)}
-                      />
-                      <label htmlFor={`week-${week.weekNumber}-task-${task.id}`} className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                        {task.text}
-                      </label>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">Assigned Mentor:</span>
+                    <Badge variant="outline" className="text-foreground">
+                      {week.assignedMentor}
+                    </Badge>
+                  </div>
                   
-                  {editingWeek === week.weekNumber ? (
-                    <div className="flex items-center gap-2 mt-2">
-                      <input
-                        type="text"
-                        value={newTaskText}
-                        onChange={(e) => setNewTaskText(e.target.value)}
-                        placeholder="Add new task..."
-                        className="flex-1 px-2 py-1 border border-border rounded text-sm"
-                        onKeyPress={(e) => e.key === 'Enter' && addTask(week.weekNumber)}
-                      />
-                      <Button size="sm" onClick={() => addTask(week.weekNumber)}>Add</Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditingWeek(null)}>Cancel</Button>
+                  {week.substituteMentor && (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">Substitute:</span>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          {week.substituteMentor}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => startEditingSubstitute(week.weekNumber, week.substituteMentor)}
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => removeSubstitute(week.weekNumber)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
-                  ) : (
+                  )}
+                  
+                  {editingSubstitute === week.weekNumber ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={substituteInput}
+                        onChange={(e) => setSubstituteInput(e.target.value)}
+                        placeholder="Enter substitute mentor name..."
+                        className="flex-1"
+                        onKeyPress={(e) => e.key === 'Enter' && addSubstitute(week.weekNumber)}
+                      />
+                      <Button size="sm" onClick={() => addSubstitute(week.weekNumber)}>
+                        <Save className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingSubstitute(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : !week.substituteMentor && (
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      onClick={() => setEditingWeek(week.weekNumber)}
-                      className="mt-2"
+                      onClick={() => startEditingSubstitute(week.weekNumber)}
+                      className="gap-2"
                     >
-                      Add Task
+                      <UserPlus className="w-3 h-3" />
+                      Add Substitute
                     </Button>
                   )}
                 </div>
