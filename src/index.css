@@ -7,45 +7,45 @@
 @layer base {
   :root {
     --background: 0 0% 98%;
-    --foreground: 0 0% 15%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 15%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 15%;
+    --popover-foreground: 0 0% 10%;
 
-    --primary: 220 25% 25%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 220 75% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 0 0% 98%;
 
     --muted: 210 15% 95%;
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 210 25% 92%;
-    --accent-foreground: 0 0% 15%;
+    --accent: 215 60% 50%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 70%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 90%;
+    --border: 210 15% 85%;
     --input: 210 15% 94%;
-    --ring: 220 25% 25%;
+    --ring: 220 75% 55%;
 
-    /* CIE Calendar Specific Colors */
-    --pastel-blue: 210 60% 85%;
-    --pastel-green: 120 40% 85%;
-    --pastel-yellow: 50 60% 88%;
-    --pastel-pink: 340 50% 88%;
-    --pastel-lavender: 260 40% 88%;
-    --pastel-peach: 25 60% 88%;
+    /* CIE Calendar Specific Colors - More vibrant pastels */
+    --pastel-blue: 210 80% 75%;
+    --pastel-green: 120 60% 75%;
+    --pastel-yellow: 50 80% 75%;
+    --pastel-pink: 340 70% 80%;
+    --pastel-lavender: 260 60% 80%;
+    --pastel-peach: 25 80% 80%;
 
-    /* Academic Calendar Colors */
-    --instruction-days: 120 50% 75%;
-    --exam-days: 0 60% 75%;
-    --holiday-days: 50 70% 80%;
+    /* Academic Calendar Colors - More saturated */
+    --instruction-days: 120 70% 70%;
+    --exam-days: 0 80% 70%;
+    --holiday-days: 50 90% 75%;
 
     /* Gradients */
     --gradient-subtle: linear-gradient(135deg, hsl(var(--background)), hsl(210 20% 96%));
@@ -63,19 +63,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -83,38 +76,38 @@
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 6%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 84% 6%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 215 80% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 30% 25%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 25% 75%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 215 60% 50%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 217.2 32.6% 22%;
+    --input: 217.2 32.6% 20%;
+    --ring: 215 80% 60%;
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 215 80% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 215 30% 25%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 215 30% 25%;
+    --sidebar-ring: 215 80% 60%;
   }
 }
 
@@ -135,19 +128,19 @@
   }
 
   .calendar-day.holiday {
-    @apply bg-yellow-100/60 border-yellow-200;
+    @apply bg-[hsl(var(--pastel-yellow))] border-[hsl(var(--pastel-yellow)/0.7)] dark:bg-[hsl(var(--holiday-days)/0.3)] dark:border-[hsl(var(--holiday-days)/0.5)];
   }
 
   .calendar-day.instruction {
-    @apply bg-green-100/60 border-green-200;
+    @apply bg-[hsl(var(--pastel-green))] border-[hsl(var(--pastel-green)/0.7)] dark:bg-[hsl(var(--instruction-days)/0.3)] dark:border-[hsl(var(--instruction-days)/0.5)];
   }
 
   .calendar-day.exam {
-    @apply bg-red-100/60 border-red-200;
+    @apply bg-[hsl(var(--pastel-pink))] border-[hsl(var(--pastel-pink)/0.7)] dark:bg-[hsl(var(--exam-days)/0.3)] dark:border-[hsl(var(--exam-days)/0.5)];
   }
 
   .calendar-day.event {
-    @apply bg-blue-100/60 border-blue-200;
+    @apply bg-[hsl(var(--pastel-blue))] border-[hsl(var(--pastel-blue)/0.7)] dark:bg-[hsl(220_70%_40%/0.3)] dark:border-[hsl(220_70%_40%/0.5)];
   }
 
   /* Sidebar Components */
@@ -161,7 +154,7 @@
 
   /* Button Variants */
   .btn-pastel {
-    @apply bg-gradient-to-r from-blue-100 to-purple-100 hover:from-blue-200 hover:to-purple-200 text-foreground border border-border/50 transition-all duration-300 hover:shadow-md;
+    @apply bg-gradient-to-r from-[hsl(var(--pastel-blue))] to-[hsl(var(--pastel-lavender))] hover:from-[hsl(var(--pastel-blue)/0.9)] hover:to-[hsl(var(--pastel-lavender)/0.9)] text-foreground border border-border/50 transition-all duration-300 hover:shadow-md dark:from-[hsl(var(--pastel-blue)/0.3)] dark:to-[hsl(var(--pastel-lavender)/0.3)] dark:hover:from-[hsl(var(--pastel-blue)/0.4)] dark:hover:to-[hsl(var(--pastel-lavender)/0.4)];
   }
 
   .btn-soft {
@@ -174,7 +167,7 @@
   }
 
   .card-pastel {
-    @apply bg-gradient-to-br from-blue-50/50 to-purple-50/50 border border-blue-200/30 shadow-sm hover:shadow-md transition-all duration-300;
+    @apply bg-gradient-to-br from-[hsl(var(--pastel-blue)/0.5)] to-[hsl(var(--pastel-lavender)/0.5)] border border-[hsl(var(--pastel-blue)/0.5)] shadow-sm hover:shadow-md transition-all duration-300 dark:from-[hsl(var(--pastel-blue)/0.2)] dark:to-[hsl(var(--pastel-lavender)/0.2)] dark:border-[hsl(var(--pastel-blue)/0.3)];
   }
 
   /* Utility Classes */
