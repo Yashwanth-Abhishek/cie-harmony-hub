@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Calendar from './Calendar';
 import { dummyEvents, type AcademicEvent } from '@/lib/events';
 
 interface AcademicCalendarProps {
   events?: AcademicEvent[];
   onEventsChange?: (events: AcademicEvent[]) => void;
+  selectedYear: number;
   readOnly?: boolean;
   [key: string]: any;
 }
@@ -12,6 +13,7 @@ interface AcademicCalendarProps {
 export function AcademicCalendar({
   events: propEvents = [],
   onEventsChange,
+  selectedYear,
   readOnly = false,
   ...props
 }: AcademicCalendarProps) {
@@ -19,7 +21,12 @@ export function AcademicCalendar({
   const events = propEvents.length === 0 ? dummyEvents : propEvents;
 
   const handleEventsChange = (updatedEvents: AcademicEvent[]) => {
-    onEventsChange?.(updatedEvents);
+    // Add the selected year to each event
+    const eventsWithYear = updatedEvents.map(event => ({
+      ...event,
+      year: selectedYear
+    }));
+    onEventsChange?.(eventsWithYear);
   };
 
   return (
@@ -28,6 +35,7 @@ export function AcademicCalendar({
       events={events}
       onEventUpdate={handleEventsChange}
       readOnly={readOnly}
+      selectedYear={selectedYear}
       showLegend={true}
     />
   );

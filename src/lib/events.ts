@@ -8,7 +8,7 @@ export interface AcademicEvent {
   description: string;
   color?: string;
   type: 'exam' | 'event' | 'holiday' | 'instruction';
-  year: string;
+  year: number;
 }
 
 export const dummyEvents: AcademicEvent[] = [
@@ -21,7 +21,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Hands-on workshop on IoT basics.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-2',
@@ -31,7 +31,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "National holiday - College closed.",
     type: 'holiday',
     color: '#FFF475',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-3',
@@ -41,7 +41,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Mid-term examinations for all courses.",
     type: 'exam',
     color: '#F28B82',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-4',
@@ -51,7 +51,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Festival holiday - College closed.",
     type: 'holiday',
     color: '#FFF475',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-5',
@@ -61,7 +61,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Deadline for project submissions.",
     type: 'instruction',
     color: '#CCFF90',
-    year: '1st Year'
+    year: 1
   },
   // September 2025
   { 
@@ -72,7 +72,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Annual career fair with top companies.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-7',
@@ -82,7 +82,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Special lecture on AI in modern applications.",
     type: 'instruction',
     color: '#CCFF90',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-8',
@@ -92,7 +92,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "24-hour coding competition for all students.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-9',
@@ -102,7 +102,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "First quiz for all courses.",
     type: 'exam',
     color: '#F28B82',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-10',
@@ -112,7 +112,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "National holiday - College closed.",
     type: 'holiday',
     color: '#FFF475',
-    year: '1st Year'
+    year: 1
   },
   // October 2025
   { 
@@ -123,7 +123,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Annual cultural festival begins.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-12',
@@ -133,7 +133,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Festival holiday - College closed.",
     type: 'holiday',
     color: '#FFF475',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-13',
@@ -143,7 +143,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Annual alumni gathering and networking event.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-14',
@@ -153,7 +153,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Second mid-term examinations.",
     type: 'exam',
     color: '#F28B82',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-15',
@@ -163,7 +163,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Workshop on cloud computing and deployment.",
     type: 'instruction',
     color: '#CCFF90',
-    year: '1st Year'
+    year: 1
   },
   { 
     id: 'event-16',
@@ -173,7 +173,7 @@ export const dummyEvents: AcademicEvent[] = [
     description: "Annual Halloween celebration.",
     type: 'event',
     color: '#AECBFA',
-    year: '1st Year'
+    year: 1
   }
 ];
 

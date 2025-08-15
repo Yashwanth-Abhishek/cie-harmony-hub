@@ -16,7 +16,7 @@ export interface CalendarEvent {
   category: string;
   description: string;
   color: string;
-  year: string;
+  year: number;
 }
 
 interface CalendarProps {
@@ -24,6 +24,7 @@ interface CalendarProps {
   onEventUpdate?: (events: AcademicEvent[]) => void;
   showLegend?: boolean;
   readOnly?: boolean;
+  selectedYear: number;
 }
 
 const monthNames = [
@@ -45,17 +46,18 @@ export default function Calendar({
   events = [], 
   onEventUpdate, 
   showLegend = true, 
-  readOnly = false 
+  readOnly = false,
+  selectedYear,
 }: CalendarProps) {
   const [selectedEvent, setSelectedEvent] = useState<AcademicEvent | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [newEvent, setNewEvent] = useState<Partial<AcademicEvent>>({
+  const [newEvent, setNewEvent] = useState<Omit<AcademicEvent, 'id' | 'date'>>({ 
     name: '',
     category: 'Events',
     description: '',
     type: 'event',
     color: getEventColor('Events'),
-    year: '1st Year'
+    year: selectedYear,
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -102,10 +104,9 @@ export default function Calendar({
         name: '',
         category: 'Events',
         description: '',
-        date: dateStr,
         type: 'event',
         color: getEventColor('Events'),
-        year: '1st Year'
+        year: selectedYear,
       });
       setIsEditing(true);
     }
@@ -123,7 +124,7 @@ export default function Calendar({
       description: newEvent.description || '',
       type: newEvent.type,
       color: newEvent.color,
-      year: selectedEvent?.year || '1st Year'
+      year: selectedYear,
     };
 
     const updatedEvents = selectedEvent
@@ -139,7 +140,7 @@ export default function Calendar({
       description: '',
       type: 'event',
       color: getEventColor('Events'),
-      year: '1st Year'
+      year: selectedYear,
     });
   };
 
@@ -173,7 +174,7 @@ export default function Calendar({
       description: '',
       type: 'event',
       color: getEventColor('Events'),
-      year: '1st Year'
+      year: selectedYear,
     });
   };
 
@@ -245,12 +246,22 @@ export default function Calendar({
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Year</label>
-                <Input
-                  value={newEvent.year}
-                  onChange={(e) => setNewEvent({...newEvent, year: e.target.value})}
-                  placeholder="Enter event year"
-                />
+                <label className="text-sm font-medium">Academic Year</label>
+                <Select
+                  value={newEvent.year.toString()}
+                  onValueChange={(value) => setNewEvent({...newEvent, year: parseInt(value, 10)})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4].map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {`${year}${year === 1 ? 'st' : year === 2 ? 'nd' : year === 3 ? 'rd' : 'th'} Year`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="text-sm text-muted-foreground">

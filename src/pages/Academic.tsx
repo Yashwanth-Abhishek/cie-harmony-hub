@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { AcademicCalendar } from "@/components/AcademicCalendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,21 +9,22 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 // Academic years data
-const academicYears = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-
+const dummyEvents: AcademicEvent[] = [
+  // Add dummy events here
+];
 
 export default function Academic() {
-  const [selectedYear, setSelectedYear] = useState<string>("1st Year");
-  const [allEvents, setAllEvents] = useState<AcademicEvent[]>([]);
-  const [isAddingEvent, setIsAddingEvent] = useState(false);
-
-  // Filter events based on selected year
-  const filteredEvents = allEvents.filter(event => 
-    event.year === selectedYear
+  const [selectedYear, setSelectedYear] = useState<number>(1); 
+  const [allEvents, setAllEvents] = useState<AcademicEvent[]>(dummyEvents);
+  
+  // Filter events for the selected year
+  const filteredEvents = useMemo(() => 
+    allEvents.filter(event => event.year === selectedYear),
+    [allEvents, selectedYear]
   );
 
   const handleEventsChange = (updatedEvents: AcademicEvent[]) => {
-    // Update only the events for the current year
+    // Remove all events for the current year and add the updated ones
     const otherYearEvents = allEvents.filter(event => event.year !== selectedYear);
     setAllEvents([...otherYearEvents, ...updatedEvents]);
   };
@@ -37,14 +38,17 @@ export default function Academic() {
             <p className="text-muted-foreground mt-1">Track academic schedules for different years</p>
           </div>
           <div className="flex items-center gap-4">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <Select 
+              value={selectedYear.toString()} 
+              onValueChange={(value) => setSelectedYear(Number(value))}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Select year" />
               </SelectTrigger>
               <SelectContent>
-                {academicYears.map(year => (
-                  <SelectItem key={year} value={year}>
-                    {year}
+                {[1, 2, 3, 4].map(year => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {`${year}${year === 1 ? 'st' : year === 2 ? 'nd' : year === 3 ? 'rd' : 'th'} Year`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -57,6 +61,7 @@ export default function Academic() {
           <AcademicCalendar 
             events={filteredEvents}
             onEventsChange={handleEventsChange}
+            selectedYear={selectedYear}
             readOnly={false}
           />
         </div>
@@ -64,14 +69,14 @@ export default function Academic() {
         {/* Upcoming Events */}
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming Events - {selectedYear}</CardTitle>
+            <CardTitle>Upcoming Events - Year {selectedYear}</CardTitle>
           </CardHeader>
           <CardContent>
-            {allEvents.length > 0 ? (
+            {filteredEvents.length > 0 ? (
               <div className="space-y-4">
-                {allEvents
+                {filteredEvents
+                  .filter(event => new Date(event.date) >= new Date())
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                  .filter(event => new Date(event.date) >= new Date() && event.year === selectedYear)
                   .slice(0, 5)
                   .map((event) => (
                     <div 
@@ -107,7 +112,7 @@ export default function Academic() {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No upcoming events.
+                No upcoming events for this year.
               </div>
             )}
           </CardContent>
