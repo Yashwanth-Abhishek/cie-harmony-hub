@@ -75,9 +75,8 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
         </div>
       </header>
 
-      {/* Main Content and Sidebar Container */}
-      <div className="flex flex-1 pt-16">
-        {/* Sidebar */}
+      {/* Main Content Container - Using Flex Layout */}
+      <div className="flex pt-16 min-h-[calc(100vh-4rem)]">
         {/* Mobile Overlay */}
         {isMobile && sidebarOpen && (
           <div 
@@ -85,16 +84,17 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
             onClick={() => setSidebarOpen(false)}
           />
         )}
+
+        {/* Sidebar - Flex Item */}
         <aside
           className={cn(
-            "bg-card border-r border-border/50 transition-all duration-300 z-20",
-            "fixed md:sticky top-16 left-0 h-[calc(100vh-4rem)]",
+            "bg-card border-r border-border/50 transition-all duration-300 z-20 flex-shrink-0",
             isMobile 
-              ? `${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64`
+              ? `fixed top-16 left-0 h-[calc(100vh-4rem)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64`
               : `${sidebarOpen ? 'w-64' : 'w-20'}`,
           )}
         >
-          <nav className="p-4 space-y-2 h-full overflow-y-auto">
+          <nav className="p-4 space-y-2 h-full overflow-y-auto w-full">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -114,7 +114,7 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
                   <Icon className="h-5 w-5 flex-shrink-0" />
                   <span className={cn(
                     "transition-opacity whitespace-nowrap",
-                    !sidebarOpen && !isMobile ? "opacity-0 w-0" : "opacity-100"
+                    !sidebarOpen && !isMobile ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
                   )}>
                     {item.label}
                   </span>
@@ -124,12 +124,9 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
           </nav>
         </aside>
 
-        {/* Main Content */}
-        <main className={cn(
-          "flex-1 transition-all duration-300 min-h-[calc(100vh-4rem)]",
-          isMobile ? "ml-0" : sidebarOpen ? "ml-64" : "ml-20"
-        )}>
-          <div className="p-4 md:p-6 w-full max-w-full">
+        {/* Main Content - Flex Item that takes remaining space */}
+        <main className="flex-1 min-w-0">
+          <div className="p-4 md:p-6 h-full">
             {children}
           </div>
         </main>
