@@ -127,9 +127,9 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
         {/* Main Content */}
         <main className={cn(
           "flex-1 transition-all duration-300 min-h-[calc(100vh-4rem)]",
-          !isMobile && sidebarOpen ? "md:ml-64" : "md:ml-0"
+          isMobile ? "ml-0" : sidebarOpen ? "ml-64" : "ml-20"
         )}>
-          <div className="p-4 md:p-6 w-full">
+          <div className="p-4 md:p-6 w-full max-w-full">
             {children}
           </div>
         </main>
