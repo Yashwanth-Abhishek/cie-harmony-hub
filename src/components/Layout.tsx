@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, Calendar, GraduationCap, Users, Lightbulb, Camera, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+// Add smooth scrolling behavior
+if (typeof window !== 'undefined') {
+  document.documentElement.style.scrollBehavior = 'smooth';
+}
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,12 +23,30 @@ const navigationItems = [
 ];
 
 export default function Layout({ children, currentPage = "home" }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Initial check
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="h-16 bg-card border-b border-border/50 px-4 flex items-center justify-between shadow-sm">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border/50 px-4 flex items-center justify-between shadow-sm z-50">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -52,15 +75,26 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
         </div>
       </header>
 
-      <div className="flex">
+      {/* Main Content and Sidebar Container */}
+      <div className="flex flex-1 pt-16">
         {/* Sidebar */}
+        {/* Mobile Overlay */}
+        {isMobile && sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-10 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
         <aside
           className={cn(
-            "fixed top-16 left-0 h-[calc(100vh-4rem)] bg-card border-r border-border/50 transition-all duration-300 z-10",
-            sidebarOpen ? "w-64" : "w-0 overflow-hidden"
+            "bg-card border-r border-border/50 transition-all duration-300 z-20",
+            "fixed md:sticky top-16 left-0 h-[calc(100vh-4rem)]",
+            isMobile 
+              ? `${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-64`
+              : `${sidebarOpen ? 'w-64' : 'w-20'}`,
           )}
         >
-          <nav className="p-4 space-y-2">
+          <nav className="p-4 space-y-2 h-full overflow-y-auto">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -69,13 +103,21 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
                 <a
                   key={item.id}
                   href={item.href}
+                  onClick={() => isMobile && setSidebarOpen(false)}
                   className={cn(
-                    "sidebar-item",
-                    isActive && "active"
+                    "flex items-center gap-3 p-2 rounded-md transition-colors",
+                    "hover:bg-accent hover:text-accent-foreground",
+                    isActive ? "bg-accent text-accent-foreground" : "text-foreground/80",
+                    "text-sm font-medium"
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className={cn(
+                    "transition-opacity whitespace-nowrap",
+                    !sidebarOpen && !isMobile ? "opacity-0 w-0" : "opacity-100"
+                  )}>
+                    {item.label}
+                  </span>
                 </a>
               );
             })}
@@ -83,13 +125,11 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
         </aside>
 
         {/* Main Content */}
-        <main
-          className={cn(
-            "flex-1 transition-all duration-300",
-            sidebarOpen ? "ml-64" : "ml-0"
-          )}
-        >
-          <div className="p-6">
+        <main className={cn(
+          "flex-1 transition-all duration-300 min-h-[calc(100vh-4rem)]",
+          !isMobile && sidebarOpen ? "md:ml-64" : "md:ml-0"
+        )}>
+          <div className="p-4 md:p-6 w-full">
             {children}
           </div>
         </main>
