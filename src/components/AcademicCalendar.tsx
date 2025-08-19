@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import Calendar from './Calendar';
+import { Calendar } from './Calendar';
 import { dummyEvents, type AcademicEvent } from '@/lib/events';
 
 interface AcademicCalendarProps {
