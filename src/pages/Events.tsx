@@ -29,7 +29,26 @@ interface EventData {
 export default function Events() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [events, setEvents] = useState<Tables<'events'>[]>([]);
+  const [events, setEvents] = useState<Tables<'events'>[]>([
+    {
+      id: 'event-1',
+      title: 'AARAMBA',
+      description: 'AARAMBA - Welcome Event',
+      event_date: '2025-08-20',
+      venue: 'CIE Building',
+      type: 'event',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'event-2',
+      title: 'CIE-Orientation day',
+      description: 'Orientation day for new students',
+      event_date: '2025-08-23',
+      venue: 'CIE Building',
+      type: 'event',
+      created_at: new Date().toISOString()
+    }
+  ]);
   const [eventForm, setEventForm] = useState<EventFormData>({
     title: "",
     date: "",
