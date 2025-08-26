@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
-import Calendar from "@/components/Calendar";
+import { Calendar } from "@/components/Calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,7 +74,7 @@ export default function Events() {
     }
   };
 
-  const handleDateClick = (date: Date) => {
+  const handleDateClick = (date: Date, dayEvents: any[]) => {
     setSelectedDate(date);
     setEventForm(prev => ({
       ...prev,
@@ -177,11 +177,17 @@ export default function Events() {
     ...events.map(event => ({
       id: event.id.toString(),
       title: event.title,
-      date: event.event_date,
-      type: "event" as const,
-      description: event.description
+      type: "instruction" as const,
+      date: new Date(event.event_date),
+      description: event.description || undefined
     })),
-    ...holidays
+    ...holidays.map(holiday => ({
+      id: holiday.id,
+      title: holiday.title,
+      type: "holiday" as const,
+      date: new Date(holiday.date),
+      description: undefined
+    }))
   ];
 
   return (

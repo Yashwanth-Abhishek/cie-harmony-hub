@@ -117,7 +117,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans scrollbar-hide;
   }
 }
 
@@ -141,6 +141,27 @@
 
   .calendar-day.event {
     @apply bg-[hsl(var(--pastel-blue))] border-[hsl(var(--pastel-blue)/0.7)] dark:bg-[hsl(220_70%_40%/0.3)] dark:border-[hsl(220_70%_40%/0.5)];
+  }
+
+  /* Event Type Colors for New Calendar Component */
+  .bg-instruction {
+    @apply bg-[hsl(var(--pastel-green))] dark:bg-[hsl(var(--instruction-days)/0.6)];
+  }
+
+  .bg-exam {
+    @apply bg-[hsl(var(--pastel-pink))] dark:bg-[hsl(var(--exam-days)/0.6)];
+  }
+
+  .bg-holiday {
+    @apply bg-[hsl(var(--pastel-yellow))] dark:bg-[hsl(var(--holiday-days)/0.6)];
+  }
+
+  .bg-mentoring {
+    @apply bg-[hsl(var(--pastel-blue))] dark:bg-[hsl(var(--pastel-blue)/0.6)];
+  }
+
+  .bg-studio {
+    @apply bg-[hsl(var(--pastel-lavender))] dark:bg-[hsl(var(--pastel-lavender)/0.6)];
   }
 
   /* Sidebar Components */
@@ -177,5 +198,15 @@
 
   .glass-effect {
     @apply bg-white/80 backdrop-blur-sm border border-white/20;
+  }
+
+  /* Hide scrollbars for carousel */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

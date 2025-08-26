@@ -68,11 +68,6 @@ export default function Layout({ children, currentPage = "home" }: LayoutProps) 
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="btn-pastel">
-            Today
-          </Button>
-        </div>
       </header>
 
       {/* Main Content Container - Using Flex Layout */}
